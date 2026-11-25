@@ -9,8 +9,10 @@
   --color-field-border: #b8aa9a;
   --color-accent: #e31c5f; /* rojo tipo Airbnb, contraste AA con texto blanco */
   --color-accent-hover: #c8174f;
+  --color-accent-soft: #dd3066; /* rojo suave: solo para el cristal rojo sobre fotos */
   --color-on-accent: #ffffff;
-  --color-link: #0f7f86;
+  --color-link: #0c6e74; /* turquesa, contraste AA sobre el marfil */
+  --color-on-photo: #ffffff; /* texto, iconos y contorno de foco sobre fotos */
   --color-error: #b3261e;
 
   /* Tipografía */
@@ -21,6 +23,8 @@
   --text-lg: 1.125rem;
   --text-title: 2rem;
   --text-hero: 2.75rem;
+  --text-display: clamp(3.5rem, 18vw, 5.5rem); /* título enorme de la bienvenida */
+  --text-button-lg: 1.2rem; /* 19,2 px en negrita: cuenta como texto grande (3:1) */
 
   /* Espacios */
   --space-1: 4px;
@@ -37,11 +41,37 @@
   --radius-card: 20px;
   --radius-pill: 999px;
   --tap-min: 44px; /* tamaño mínimo táctil */
+  --button-height: 52px;
+  --button-pill-min-width: 220px;
+  --floating-bar-height: 56px; /* las páginas con barra flotante dejan este hueco abajo */
 
   /* Cristal (solo sobre fotos) */
   --glass-bg: rgb(255 255 255 / 0.22);
   --glass-border: rgb(255 255 255 / 0.45);
   --glass-blur: 16px;
+  --glass-bg-dark: rgb(24 18 15 / 0.2); /* cristal tintado: sobre cielos claros, no los aclara */
+  /* Cristal claro: barra flotante sobre el contenido (fotos o marfil) */
+  --glass-light-bg: rgb(255 255 255 / 0.72);
+  --glass-light-bg-solid: rgb(255 255 255 / 0.96); /* sin backdrop-filter */
+
+  /* Cristal rojo (solo sobre fotos): botón principal de la foto de bienvenida.
+     Sale del color de acento; el texto blanco se ha medido con la foto detrás. */
+  --glass-accent-bg: color-mix(in srgb, var(--color-accent-soft) 75%, transparent);
+  --glass-accent-bg-hover: color-mix(in srgb, var(--color-accent-soft) 80%, transparent);
+  --glass-accent-bg-solid: var(--color-accent-soft); /* sin backdrop-filter: sólido (4,48:1) */
+  --glass-accent-blur: 14px;
+  --glass-accent-saturate: 160%;
+  --glass-highlight: rgb(255 255 255 / 0.35); /* brillo interior: línea fina arriba */
+  --shadow-soft: 0 8px 24px rgb(24 18 15 / 0.25);
+
+  /* Velo muy suave arriba de la foto de bienvenida: solo asegura el contraste
+     del texto blanco sobre el cielo (medido a 320, 375 y 430 px). No oscurecer más. */
+  --overlay-sky: rgb(24 18 15 / 0.15);
+  --overlay-sky-height: 320px;
+
+  /* Fotos y maqueta */
+  --photo-welcome-position: 50% 0%; /* arriba del todo: si sobra foto, se recorta el seto, no el cielo */
+  --layout-max-width: 480px;
 
   /* Movimiento (sutil) */
   --ease: cubic-bezier(0.22, 0.61, 0.36, 1);

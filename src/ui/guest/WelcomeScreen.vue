@@ -1,36 +1,78 @@
 <script setup lang="ts">
 import AppButton from '../shared/AppButton.vue'
-import fachada from '../../assets/photos/fachada.jpg'
+import AppIcon from '../shared/AppIcon.vue'
+import LanguageSwitch from '../shared/LanguageSwitch.vue'
+import type { IconName } from '../shared/icons'
+import { t, type MessageKey } from '../../i18n'
+import fotoCasa from '../../assets/photos/plano-general-casa.jpg'
+
+// Los tres pasos de "Cómo funciona": icono, título y texto (claves de i18n).
+const steps: { icon: IconName; title: MessageKey; text: MessageKey }[] = [
+  { icon: 'edit', title: 'welcome.step1.title', text: 'welcome.step1.text' },
+  { icon: 'download', title: 'welcome.step2.title', text: 'welcome.step2.text' },
+  { icon: 'mail', title: 'welcome.step3.title', text: 'welcome.step3.text' },
+]
 </script>
 
 <template>
   <main class="welcome">
-    <header class="welcome__photo">
-      <img :src="fachada" alt="Fachada de la casa Can Vauma" />
-      <div class="welcome__bar">
-        <span class="welcome__brand">Can Vauma</span>
-        <span class="lang" role="group" aria-label="Idioma">
-          <button type="button" class="lang__btn lang__btn--on">ES</button>
-          <button type="button" class="lang__btn">EN</button>
-        </span>
-      </div>
-    </header>
+    <!-- Primera pantalla: foto a pantalla completa. Texto arriba (sobre el cielo), botón abajo. -->
+    <section class="hero" aria-labelledby="welcome-title">
+      <img class="hero__photo" :src="fotoCasa" :alt="t('welcome.photoAlt')" />
+      <!-- Velo muy suave arriba: solo asegura el contraste del texto sobre el cielo -->
+      <div class="hero__veil" aria-hidden="true"></div>
 
-    <section class="welcome__body">
-      <div v-reveal>
-        <h1>Can Vauma</h1>
-        <p class="welcome__place">Alcúdia, Mallorca · Registro de viajeros</p>
+      <div class="hero__top">
+        <header class="hero__bar">
+          <!-- aria-hidden: el nombre ya lo lee el título h1 de abajo -->
+          <span class="hero__brand" aria-hidden="true">{{ t('brand') }}</span>
+          <LanguageSwitch />
+        </header>
+        <div class="hero__heading">
+          <h1 id="welcome-title" class="hero__title">{{ t('brand') }}</h1>
+          <p class="hero__place">{{ t('welcome.place') }}</p>
+        </div>
       </div>
-      <p v-reveal="120">
-        La normativa española exige comunicar los datos de todas las personas alojadas. Rellenar
-        este formulario le llevará unos [X] minutos.
+
+      <div class="hero__bottom">
+        <AppButton variant="glass-accent" href="#estancia">
+          {{ t('welcome.start') }}
+          <AppIcon name="arrow" />
+        </AppButton>
+      </div>
+    </section>
+
+    <!-- Debajo de la foto: se ve al bajar -->
+    <section class="how" aria-labelledby="how-title">
+      <p v-reveal class="how__lead">{{ t('welcome.lead') }}</p>
+      <h2 id="how-title" v-reveal="80" class="how__title">{{ t('welcome.howTitle') }}</h2>
+
+      <ol class="how__list">
+        <li
+          v-for="(step, i) in steps"
+          :key="step.icon"
+          v-reveal="80 * (i + 2)"
+          class="how__step"
+        >
+          <span class="how__icon"><AppIcon :name="step.icon" /></span>
+          <div>
+            <h3 class="how__step-title">{{ t(step.title) }}</h3>
+            <p class="how__step-text">{{ t(step.text) }}</p>
+          </div>
+        </li>
+      </ol>
+
+      <p v-reveal="400" class="how__privacy">
+        {{ t('welcome.privacy') }}
+        <a href="#aviso">{{ t('welcome.privacyLink') }}</a>
       </p>
-      <p v-reveal="200" class="welcome__privacy">
-        Sus datos no se guardan en ningún servidor.
-        <a href="#aviso">Aviso de privacidad</a>
-      </p>
-      <div v-reveal="280">
-        <AppButton href="#estancia">Comenzar</AppButton>
+
+      <!-- Secundario (contorno): en móviles altos se vería a la vez que el rojo de la foto,
+           y solo puede haber un botón rojo visible a la vez (docs/estilo.md). -->
+      <div v-reveal="480">
+        <AppButton variant="outline" href="#estancia" class="how__cta">
+          {{ t('welcome.start') }}
+        </AppButton>
       </div>
     </section>
   </main>
@@ -38,78 +80,145 @@ import fachada from '../../assets/photos/fachada.jpg'
 
 <style scoped>
 .welcome {
-  max-width: 480px;
+  max-width: var(--layout-max-width);
   margin: 0 auto;
-  min-height: 100dvh;
   background: var(--color-paper);
 }
-.welcome__photo {
+
+/* ---------- Primera pantalla ---------- */
+.hero {
   position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 100dvh;
+  overflow: hidden;
+  color: var(--color-on-photo);
 }
-.welcome__photo img {
-  display: block;
+.hero__photo {
+  position: absolute;
+  inset: 0;
   width: 100%;
-  height: 340px;
+  height: 100%;
   object-fit: cover;
+  object-position: var(--photo-welcome-position);
 }
-.welcome__bar {
+
+/* Velo muy suave: va de --overlay-sky (arriba) a transparente */
+.hero__veil {
   position: absolute;
   inset: 0 0 auto 0;
+  height: var(--overlay-sky-height);
+  background: linear-gradient(var(--overlay-sky), transparent);
+}
+
+/* Parte de arriba, sobre el cielo: barra, título y pastilla */
+.hero__top {
+  position: relative;
+}
+.hero__bar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: var(--space-3) var(--space-4);
-  background: linear-gradient(rgb(20 14 10 / 0.45), transparent);
-  color: #fff;
+  padding: calc(var(--space-3) + env(safe-area-inset-top)) var(--space-4) 0;
 }
-.welcome__brand {
+.hero__brand {
   font-family: var(--font-display);
   font-size: var(--text-lg);
   letter-spacing: 0.02em;
 }
-.lang {
-  display: flex;
-  padding: 3px;
-  border-radius: var(--radius-pill);
-  border: 1px solid var(--glass-border);
-  background: var(--glass-bg);
-  backdrop-filter: blur(var(--glass-blur));
-  -webkit-backdrop-filter: blur(var(--glass-blur));
-}
-.lang__btn {
-  min-width: var(--tap-min);
-  min-height: 36px;
-  border: 0;
-  border-radius: var(--radius-pill);
-  background: transparent;
-  color: #fff;
-  font-size: var(--text-sm);
-  font-weight: 600;
-  cursor: pointer;
-}
-.lang__btn--on {
-  background: #fff;
-  color: var(--color-ink);
-}
-.welcome__body {
+.hero__heading {
   display: flex;
   flex-direction: column;
-  gap: var(--space-4);
-  padding: var(--space-5) var(--space-4) var(--space-6);
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-5) 0;
 }
-h1 {
-  font-size: var(--text-hero);
+.hero__title {
+  width: min-content; /* una palabra por línea: "Can" / "Vauma" */
+  font-size: var(--text-display);
+  line-height: 0.95;
 }
-.welcome__place {
-  margin: var(--space-2) 0 0;
-  color: var(--color-muted);
-  letter-spacing: 0.03em;
-}
-.welcome__body p {
+.hero__place {
   margin: 0;
+  padding: var(--space-1) var(--space-3);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-pill);
+  background: var(--glass-bg-dark);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  font-size: var(--text-sm);
+  font-weight: 600;
+  letter-spacing: 0.04em;
 }
-.welcome__privacy {
+
+/* Parte de abajo, sobre el seto: solo el botón principal, centrado */
+.hero__bottom {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  padding: 0 var(--space-5) calc(var(--space-6) + env(safe-area-inset-bottom));
+}
+
+/* ---------- Debajo de la foto ---------- */
+.how {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  padding: var(--space-7) var(--space-5);
+}
+.how__lead {
+  margin: 0;
+  font-size: var(--text-lg);
+}
+.how__title {
+  font-size: var(--text-title);
+}
+/* Lista agrupada tipo iOS: una tarjeta con filas separadas por líneas finas */
+.how__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  background: var(--color-surface);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-card);
+}
+.how__step {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-4);
+  padding: var(--space-4);
+}
+.how__step + .how__step {
+  border-top: 1px solid var(--color-line);
+}
+.how__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--space-7);
+  height: var(--space-7);
+  border-radius: var(--radius-pill);
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-size: var(--text-lg);
+}
+.how__step-title {
+  font-family: var(--font-body);
+  font-size: var(--text-lg);
+  font-weight: 600;
+  line-height: 1.3;
+}
+.how__step-text {
+  margin: var(--space-1) 0 0;
+  color: var(--color-muted);
+}
+.how__privacy {
+  margin: 0;
   font-size: var(--text-sm);
   color: var(--color-muted);
+}
+.how__cta {
+  width: 100%;
 }
 </style>
