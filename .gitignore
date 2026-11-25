@@ -37,3 +37,6 @@ __screenshots__/
 
 # Vite
 *.timestamp-*-*.mjs
+
+# Referencias de estilo: diseños de otras webs, no se suben al repositorio
+/referencias/
