@@ -15,6 +15,7 @@ import { errorText } from '../../i18n/errors'
 import { cleanStay } from '../../domain/normalize'
 import { PAYMENT_METHODS } from '../../domain/payment'
 import { validateStay, type FieldPath } from '../../domain/validateBooking'
+import { FREE_NAVIGATION } from '../../config'
 
 // Pantalla Estancia: localizador, entrada, salida, número de personas y forma de pago.
 const emit = defineEmits<{ back: []; next: [] }>()
@@ -46,7 +47,8 @@ const summaryList = computed(() => (submitted.value ? summaryItems(errors.value,
 async function submit(): Promise<void> {
   Object.assign(booking.stay, cleanStay(booking.stay))
   submitted.value = true
-  if (errors.value.length > 0) {
+  // Con errores no se avanza (salvo en el modo pruebas de navegación libre, ver config.ts)
+  if (errors.value.length > 0 && !FREE_NAVIGATION) {
     await nextTick()
     summary.value?.focus()
     return

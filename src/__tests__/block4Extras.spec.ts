@@ -21,11 +21,11 @@ describe('Dirección de recepción (VITE_RECEPTION_EMAIL)', () => {
   })
 })
 
-describe('Archivo parcial (Bloque 5)', () => {
-  // PENDIENTE (Bloque 5): cuando buildPartialFile genere el XML parcial, este test fallará
-  // a propósito. Entonces hay que sustituirlo por tests del XML real (plantilla y XSD).
-  it('PENDIENTE (Bloque 5): de momento devuelve "no implementado"', () => {
-    expect(buildPartialFile(emptyBooking())).toEqual({ ok: false, error: 'noImplementado' })
+describe('Archivo parcial', () => {
+  // Bloque 5A: el archivo ya se genera (tests completos en xml.spec.ts).
+  // Con una reserva vacía falta un dato obligatorio: no se genera.
+  it('con una reserva vacía no se genera (falta un dato obligatorio)', () => {
+    expect(buildPartialFile(emptyBooking())).toEqual({ ok: false, error: 'faltaDato' })
   })
 })
 

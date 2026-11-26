@@ -7,6 +7,7 @@ import PersonFields from './PersonFields.vue'
 import { usePersonForm } from './usePersonForm'
 import { ensurePeopleCount } from './bookingState'
 import { t } from '../../i18n'
+import { FREE_NAVIGATION } from '../../config'
 
 // Pantalla Datos del titular: la primera persona de la reserva.
 // El formulario está en PersonFields.vue y su lógica en usePersonForm.ts (los comparte con
@@ -19,7 +20,8 @@ const summary = ref<InstanceType<typeof ErrorSummary>>()
 async function submit(): Promise<void> {
   form.clean()
   form.submitted.value = true
-  if (form.errors.value.length > 0) {
+  // Con errores no se avanza (salvo en el modo pruebas de navegación libre, ver config.ts)
+  if (form.errors.value.length > 0 && !FREE_NAVIGATION) {
     await nextTick()
     summary.value?.focus()
     return

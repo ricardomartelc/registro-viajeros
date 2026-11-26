@@ -18,7 +18,8 @@ describe('Pantalla Final', () => {
   })
   afterEach(() => vi.unstubAllGlobals())
 
-  it('tres pasos numerados; descargar está desactivado con su nota', () => {
+  // Bloque 5A: "Descargar archivo" ya funciona (antes estaba desactivado).
+  it('tres pasos numerados; descargar está activo', () => {
     const wrapper = mountFinal()
     expect(wrapper.find('h1').text()).toBe('Casi listo')
     const titles = wrapper.findAll('.step__title').map((title) => title.text())
@@ -28,8 +29,8 @@ describe('Pantalla Final', () => {
       'Paso 3: Borre sus datos del móvil',
     ])
     const download = wrapper.findAll('.step__button')[0]!
-    expect(download.attributes('disabled')).toBeDefined()
-    expect(wrapper.text()).toContain('Disponible muy pronto.')
+    expect(download.attributes('disabled')).toBeUndefined()
+    expect(wrapper.text()).not.toContain('Disponible muy pronto.')
     expect(wrapper.text()).toContain('Sus datos no se guardan en ningún servidor.')
     wrapper.unmount()
   })

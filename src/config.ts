@@ -16,3 +16,19 @@ export function receptionEmail(env: Record<string, unknown> = import.meta.env): 
 }
 
 export const RECEPTION_EMAIL = receptionEmail()
+
+// ---------------------------------------------------------------------------
+// MODO PRUEBAS: navegación libre.
+// Con `npm run dev` se puede ir adelante y atrás por todas las pantallas aunque falten
+// datos o haya errores (los errores se siguen enseñando al salir de cada campo).
+// - En la versión final (`npm run build`) está SIEMPRE apagado: se exigen los datos.
+// - En los tests también está apagado (comprueban el comportamiento real).
+// - Para probar el modo estricto con `npm run dev`, cree un archivo .env.local con:
+//     VITE_NAVEGACION_LIBRE=false
+// Cuando la web esté terminada, se puede borrar este interruptor.
+// ---------------------------------------------------------------------------
+export function freeNavigation(env: Record<string, unknown> = import.meta.env): boolean {
+  return env.DEV === true && env.MODE !== 'test' && env.VITE_NAVEGACION_LIBRE !== 'false'
+}
+
+export const FREE_NAVIGATION = freeNavigation()

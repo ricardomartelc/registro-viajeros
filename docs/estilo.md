@@ -68,6 +68,7 @@ Compatibilidad móvil (iPhone y Android):
 - Casilla de confirmación obligatoria antes de "Continuar" (botón rojo, único principal).
 - Fechas legibles en el idioma elegido ("12 de julio de 2027") y cifras con `font-variant-numeric: tabular-nums`.
 - Final: título "Casi listo" y tres pasos numerados grandes en una lista agrupada (descargar, enviar por correo, borrar los datos). Sin aviso de guardado arriba: el borrado es el paso 3. En el indicador, todos los pasos completados.
+- Paso 1 de Final: "Descargar archivo" es el único botón rojo; si el móvil permite compartir archivos, debajo aparece "Compartir archivo" en contorno. Una ayuda plegable (`<details>`, línea de 44 px) explica qué hacer en iPhone si el archivo se abre en pantalla. El resultado se anuncia con texto ("Archivo descargado.").
 - La dirección de correo se muestra entera y seleccionable; "Copiar dirección" confirma con texto, y si el navegador no deja copiar, la enseña en un campo ya seleccionado.
 - Títulos con `text-wrap: balance`, párrafos con `text-wrap: pretty` y textos largos de 65 caracteres como máximo por línea.
 

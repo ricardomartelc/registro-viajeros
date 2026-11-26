@@ -41,7 +41,7 @@ Aún no tenemos ninguno de los tres documentos: nada de esta lista se ha deducid
 | Campos de pago y si son obligatorios | `Payment { method, date?, holder? }`, opcional | `src/domain/types.ts:42` |
 | Formas de pago y sus códigos | Valores internos: `tarjeta`, `transferencia`, `efectivo`, `otro` | `src/domain/payment.ts:1-3` |
 | Validación del pago | Sin validar | `src/domain/validateBooking.ts:110` |
-| **Fecha de tarjeta en formato MM/AAAA** (sabemos que la plantilla la incluye) | **No está en el modelo ni en la pantalla todavía** | — |
+| **Fecha de tarjeta en formato MM/AAAA** (sabemos que la plantilla la incluye) | **No está en el modelo, ni en la pantalla, ni en el XML todavía** | `src/xml/schema.ts` (comentario junto a `PAYMENT_TYPE_NODE`) |
 
 ## Reglas por edad y por tipo de documento
 
@@ -60,9 +60,40 @@ Todas en `src/domain/rules.ts` (línea 4: "TODAS por confirmar con el XSD del mi
 
 | Pendiente | Valor actual | Dónde |
 |---|---|---|
-| Generar el XML parcial (nombre del archivo, estructura, codificación) según la plantilla y el XSD | No implementado: devuelve "noImplementado"; el botón "Descargar archivo" está desactivado | `src/export/buildPartialFile.ts` |
+| Nombre del archivo que espera el propietario o el portal | `parte_<localizador>.xml` (decisión propia) | `src/export/buildPartialFile.ts` |
 | Dirección real de recepción del propietario | Ejemplo `registro@ejemplo.invalid`; la real irá en la variable de entorno `VITE_RECEPTION_EMAIL` (archivo `.env.local`, que no se sube) | `src/config.ts` |
 | ¿Qué debe poner el asunto del correo? | "El localizador de su reserva" (decisión provisional del propietario) | `src/i18n/es.ts` (`final.step2Text`) |
+
+## XML parcial (Bloque 5A): partes BORRADOR
+
+Todo está en `src/xml/schema.ts`; al llegar la plantilla o el XSD, solo se cambia ese archivo
+(y el archivo de oro `src/__tests__/fixtures/parte-3-personas.xml`, revisando el cambio).
+
+**Seguro** (dado por el propietario): raíz `<ns2:peticion>` con su espacio de nombres; UTF-8;
+fechas AAAA-MM-DD y AAAA-MM-DDThh:mm:ss+01:00/+02:00; países y nacionalidades en alfa-3;
+documentos DNI, NIE, PASAPORTE; roles TI y VI; pagos TARJETA, TRANSFERENCIA, EFECTIVO, OTRO;
+nodos `<contrato>` y `<personas>`.
+
+| BORRADOR (por confirmar con la plantilla del ministerio) | Valor provisional |
+|---|---|
+| ¿Hay nodos intermedios entre la raíz y `<contrato>` / `<personas>` (p. ej. de solicitud o comunicación)? | Ninguno: `<contrato>` y `<personas>` cuelgan de la raíz |
+| Datos que solo conoce el propietario (código de establecimiento, credenciales…): dónde y cómo van | Fuera del archivo; un comentario BORRADOR marca el sitio |
+| Nombres de los nodos del contrato | `referencia`, `fechaEntrada`, `fechaSalida`, `numPersonas`, `pago` > `tipoPago` |
+| ¿Es obligatorio el localizador (`referencia`)? | Sí |
+| Nombre de cada persona dentro de `<personas>` | `persona` |
+| Nombres y orden de los nodos de cada persona | `rol`, `nombre`, `apellido1`, `apellido2`, `tipoDocumento`, `numeroDocumento`, `soporteDocumento`, `fechaNacimiento`, `nacionalidad`, `sexo`, `direccion`, `telefono`, `correo`, `parentesco` |
+| Nombres y orden de la dirección (hoy se repite `direccion` dentro de `direccion`) | `direccion` > `direccion`, `nombreMunicipio`, `codigoPostal`, `pais` |
+| **Código de municipio del INE** para domicilios en España (hace falta la lista oficial de municipios y un selector) | No se envía: solo el nombre de la localidad |
+| Códigos de sexo | `H`, `M`, `O` |
+| Código del tipo de documento "otro" | `OTRO` |
+| Códigos de parentesco | Se escribe el texto del huésped (p. ej. "Hijo") |
+| Si los menores sin documento deben llevar algún nodo especial | Se omiten los nodos de documento |
+| Formato del teléfono en el XML (¿con prefijo, sin espacios?) | Tal como lo escribe el huésped |
+
+**Validación contra el XSD (pendiente):** cuando exista el XSD, hay que comprobar el archivo de
+oro y los XML generados contra él. Pregunta abierta: ¿cómo validar un XSD en Node **sin añadir
+librerías** al proyecto? (Node no lo trae; opciones a valorar: una herramienta externa fuera del
+proyecto, como `xmllint`, usada solo a mano o en la integración continua.)
 
 ## Textos por revisar jurídicamente
 

@@ -34,6 +34,7 @@ export const en: Record<keyof typeof es, string> = {
   'steps.review': 'Review',
   'steps.position': 'Step {actual} of {total}',
   'steps.done': 'All steps completed',
+  'dev.freeNavigation': 'Test mode: you can move forward and back even if details are missing.',
 
   'draft.notice': 'Saved only on your phone while you fill it in, and deleted when you finish.',
   'draft.unavailable':
@@ -117,7 +118,14 @@ export const en: Record<keyof typeof es, string> = {
   'final.step1Title': 'Download your file',
   'final.step1Text': 'It is the file with the details you have just checked.',
   'final.download': 'Download file',
-  'final.downloadSoon': 'Available very soon.',
+  'final.share': 'Share file',
+  'final.downloaded': 'File downloaded.',
+  'final.shared': 'File shared.',
+  'final.fileError': 'The file could not be created. Please check your details and try again.',
+  'final.shareError': 'Could not share. Use "Download file".',
+  'final.helpTitle': 'Not saved?',
+  'final.helpText':
+    'On iPhone the file may open on screen instead of being saved. Tap Share and then Save to Files.',
   'final.step2Title': 'Send it by email',
   'final.step2Text': 'Attach the file and write your booking reference in the subject line.',
   'final.emailLabel': 'Send to',

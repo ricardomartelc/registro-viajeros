@@ -19,6 +19,7 @@ import {
   reviewNav,
 } from './ui/guest/bookingState'
 import { validateBooking, validatePerson, validateStay } from './domain/validateBooking'
+import { FREE_NAVIGATION } from './config'
 
 // Página de muestra de piezas: solo en desarrollo y con ?muestra=1 en la URL.
 // En producción import.meta.env.DEV vale false y Vite deja la página fuera del paquete.
@@ -55,12 +56,14 @@ const lastCompanion = () => booking.people.length - 1
 // - #acompanantes sin acompañantes → Datos.
 // - #revisar o #final con la estancia mal → Estancia; con el titular mal → Datos.
 // - #final sin confirmar en Revisar, o con algún error → Revisar.
+// En el modo pruebas de navegación libre (config.ts) solo se mantiene la primera:
+// sin acompañantes no hay ninguna pantalla de acompañante que enseñar.
 function allowedScreen(wanted: Screen): Screen {
   if (wanted === 'acompanantes') {
     ensurePeopleCount()
     return booking.people.length < 2 ? 'datos' : 'acompanantes'
   }
-  if (wanted === 'revisar' || wanted === 'final') {
+  if ((wanted === 'revisar' || wanted === 'final') && !FREE_NAVIGATION) {
     ensurePeopleCount()
     applySharedData()
     const today = localToday()

@@ -3,7 +3,7 @@ import { computed, nextTick, ref } from 'vue'
 import AppButton from '../shared/AppButton.vue'
 import AppIcon from '../shared/AppIcon.vue'
 import GuestLayout from './GuestLayout.vue'
-import { booking, dataCleared, resetBooking } from './bookingState'
+import { applySharedData, booking, dataCleared, resetBooking } from './bookingState'
 import { t } from '../../i18n'
 import { RECEPTION_EMAIL } from '../../config'
 import { buildPartialFile } from '../../export/buildPartialFile'
@@ -11,8 +11,65 @@ import { buildPartialFile } from '../../export/buildPartialFile'
 // Pantalla Final: tres pasos (descargar el archivo, enviarlo por correo, borrar los datos).
 const emit = defineEmits<{ back: []; cleared: [] }>()
 
-// Paso 1: el archivo todavía no se genera (Bloque 5). El botón está desactivado.
-const fileReady = computed(() => buildPartialFile(booking).ok)
+// ---------- Paso 1: descargar (o compartir) el archivo ----------
+// El archivo se crea al pulsar y se entrega al navegador; no se guarda en ningún sitio.
+const fileState = ref<'idle' | 'downloaded' | 'shared' | 'error'>('idle')
+const shareError = ref(false)
+
+// ¿Deja este navegador compartir archivos? (sobre todo móviles). Si no, no hay botón.
+const MIME = 'application/xml'
+const canShareFiles = (() => {
+  try {
+    if (typeof navigator.canShare !== 'function' || typeof File === 'undefined') return false
+    return navigator.canShare({ files: [new File([''], 'prueba.xml', { type: MIME })] })
+  } catch {
+    return false
+  }
+})()
+
+// Crea el archivo. Antes copia otra vez el domicilio y el contacto del titular a los
+// acompañantes que tienen marcada la casilla (igual que Revisar).
+function createFile() {
+  applySharedData()
+  return buildPartialFile(booking)
+}
+
+function downloadFile(): void {
+  shareError.value = false
+  const result = createFile()
+  if (!result.ok) {
+    fileState.value = 'error' // el texto del error no lleva datos personales
+    return
+  }
+  // Enlace temporal: se pulsa solo, se quita, y la dirección temporal se libera después.
+  const url = URL.createObjectURL(result.blob)
+  const link = document.createElement('a')
+  link.href = url
+  link.download = result.fileName
+  document.body.appendChild(link)
+  link.click()
+  link.remove()
+  // Se espera un momento antes de liberarla: algunos móviles la leen con retraso.
+  setTimeout(() => URL.revokeObjectURL(url), 1000)
+  fileState.value = 'downloaded'
+}
+
+async function shareFile(): Promise<void> {
+  shareError.value = false
+  const result = createFile()
+  if (!result.ok) {
+    fileState.value = 'error'
+    return
+  }
+  const file = new File([result.blob], result.fileName, { type: MIME })
+  try {
+    await navigator.share({ files: [file], title: result.fileName })
+    fileState.value = 'shared'
+  } catch (error) {
+    // Si la persona cierra el menú de compartir, no es un error.
+    if (!(error instanceof DOMException && error.name === 'AbortError')) shareError.value = true
+  }
+}
 
 // Paso 2: copiar la dirección de correo.
 // Si el navegador no deja copiar, se enseña la dirección en un campo ya seleccionado.
@@ -56,17 +113,47 @@ function clearData(): void {
             {{ t('final.step1Title') }}
           </h2>
           <p class="step__text">{{ t('final.step1Text') }}</p>
-          <AppButton
-            class="step__button"
-            :disabled="!fileReady"
-            :aria-describedby="fileReady ? undefined : 'descarga-pronto'"
-          >
+          <AppButton class="step__button download-button" @click="downloadFile">
             <AppIcon name="download" />
             {{ t('final.download') }}
           </AppButton>
-          <p v-if="!fileReady" id="descarga-pronto" class="step__note">
-            {{ t('final.downloadSoon') }}
+          <AppButton
+            v-if="canShareFiles"
+            variant="outline"
+            class="step__button share-button"
+            @click="shareFile"
+          >
+            {{ t('final.share') }}
+          </AppButton>
+
+          <!-- role="status": se anuncia sin mover el foco -->
+          <p role="status" class="step__status">
+            {{
+              fileState === 'downloaded'
+                ? t('final.downloaded')
+                : fileState === 'shared'
+                  ? t('final.shared')
+                  : ''
+            }}
           </p>
+
+          <!-- Si no se ha podido crear el archivo (no debería pasar tras Revisar) -->
+          <div v-if="fileState === 'error'" class="file-error" role="alert">
+            <p class="file-error__text">
+              <AppIcon name="alert" />
+              <span>{{ t('final.fileError') }}</span>
+            </p>
+            <AppButton variant="outline" class="file-error__back" @click="emit('back')">
+              {{ t('final.backToReview') }}
+            </AppButton>
+          </div>
+          <p v-if="shareError" class="step__note">{{ t('final.shareError') }}</p>
+
+          <!-- Ayuda plegable para iPhone (el archivo puede abrirse en pantalla) -->
+          <details class="help">
+            <summary class="help__summary">{{ t('final.helpTitle') }}</summary>
+            <p class="help__text">{{ t('final.helpText') }}</p>
+          </details>
         </div>
       </li>
 
@@ -216,6 +303,35 @@ function clearData(): void {
 .step__status {
   color: var(--color-ink);
   font-weight: 600;
+}
+.file-error {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  border: 2px solid var(--color-error);
+  border-radius: var(--radius-card);
+}
+.file-error__text {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+  color: var(--color-error);
+  font-weight: 600;
+}
+/* Ayuda plegable: la línea que se pulsa mide 44 px o más */
+.help__summary {
+  display: flex;
+  align-items: center;
+  min-height: var(--tap-min);
+  color: var(--color-link);
+  text-decoration: underline;
+  cursor: pointer;
+}
+.help__text {
+  margin: 0;
+  max-width: 65ch;
 }
 .data {
   margin: 0;

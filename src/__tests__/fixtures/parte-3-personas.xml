@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Archivo PARCIAL generado por el huesped en la web de Can Vauma. El propietario lo completa y lo valida antes de enviarlo a SES.HOSPEDAJES. BORRADOR: estructura por confirmar con la plantilla del ministerio. -->
+<ns2:peticion xmlns:ns2="http://www.neg.hospedajes.mir.es/altaParteHospedaje">
+  <!-- BORRADOR: aqui faltan los datos que solo conoce el propietario (codigo de establecimiento, credenciales, etc.). No se piden al huesped. -->
+  <contrato>
+    <referencia>RES-0003</referencia>
+    <fechaEntrada>2027-07-12T16:00:00+02:00</fechaEntrada>
+    <fechaSalida>2027-07-19T11:00:00+02:00</fechaSalida>
+    <numPersonas>3</numPersonas>
+    <pago>
+      <tipoPago>TARJETA</tipoPago>
+    </pago>
+  </contrato>
+  <personas>
+    <persona>
+      <rol>TI</rol>
+      <nombre>Ana</nombre>
+      <apellido1>Ejemplo</apellido1>
+      <apellido2>Prueba</apellido2>
+      <tipoDocumento>DNI</tipoDocumento>
+      <numeroDocumento>12345678Z</numeroDocumento>
+      <soporteDocumento>AAA000000</soporteDocumento>
+      <fechaNacimiento>1985-03-10</fechaNacimiento>
+      <nacionalidad>ESP</nacionalidad>
+      <sexo>M</sexo>
+      <direccion>
+        <direccion>Calle Inventada 1</direccion>
+        <nombreMunicipio>Alcúdia</nombreMunicipio>
+        <codigoPostal>07400</codigoPostal>
+        <pais>ESP</pais>
+      </direccion>
+      <telefono>+34 600 000 000</telefono>
+      <correo>ana@ejemplo.test</correo>
+    </persona>
+    <persona>
+      <rol>VI</rol>
+      <nombre>Luis</nombre>
+      <apellido1>Prueba</apellido1>
+      <tipoDocumento>PASAPORTE</tipoDocumento>
+      <numeroDocumento>C01X00T47</numeroDocumento>
+      <fechaNacimiento>1983-11-02</fechaNacimiento>
+      <nacionalidad>DEU</nacionalidad>
+      <sexo>H</sexo>
+      <direccion>
+        <direccion>Calle Inventada 1</direccion>
+        <nombreMunicipio>Alcúdia</nombreMunicipio>
+        <codigoPostal>07400</codigoPostal>
+        <pais>ESP</pais>
+      </direccion>
+      <telefono>+34 600 000 000</telefono>
+    </persona>
+    <persona>
+      <rol>VI</rol>
+      <nombre>Leo</nombre>
+      <apellido1>Prueba</apellido1>
+      <fechaNacimiento>2016-05-20</fechaNacimiento>
+      <nacionalidad>FRA</nacionalidad>
+      <sexo>H</sexo>
+      <direccion>
+        <direccion>Calle Inventada 1</direccion>
+        <nombreMunicipio>Alcúdia</nombreMunicipio>
+        <codigoPostal>07400</codigoPostal>
+        <pais>ESP</pais>
+      </direccion>
+      <telefono>+34 600 000 000</telefono>
+      <parentesco>Hijo</parentesco>
+    </persona>
+  </personas>
+</ns2:peticion>

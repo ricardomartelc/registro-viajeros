@@ -19,6 +19,7 @@ import {
   type EditTarget,
 } from './review'
 import { t } from '../../i18n'
+import { FREE_NAVIGATION } from '../../config'
 
 // Pantalla Revisar (patrón "Comprueba tus respuestas" de GOV.UK):
 // una tarjeta por bloque con botón "Cambiar", la lista de errores con enlaces,
@@ -32,6 +33,8 @@ applySharedData()
 const today = localToday()
 const errors = computed(() => reviewErrors(today))
 const hasErrors = computed(() => errors.value.length > 0)
+// "Continuar" bloqueado con errores (salvo en el modo pruebas de navegación libre, ver config.ts)
+const blocked = computed(() => hasErrors.value && !FREE_NAVIGATION)
 
 // Ir a una pantalla para corregir. Con un error, además se lleva el foco a su campo.
 // En las dos, "Siguiente" en esa pantalla volverá directamente aquí.
@@ -64,8 +67,8 @@ const accepted = ref(false)
 const acceptError = ref(false)
 
 async function submit(): Promise<void> {
-  if (hasErrors.value) return
-  if (!accepted.value) {
+  if (blocked.value) return
+  if (!accepted.value && !FREE_NAVIGATION) {
     acceptError.value = true
     await nextTick()
     focusField('confirmar-datos')
@@ -165,7 +168,7 @@ function onAcceptChange(value: boolean): void {
         <AppButton
           type="submit"
           class="actions__button"
-          :disabled="hasErrors"
+          :disabled="blocked"
           :aria-describedby="hasErrors ? 'motivo-continuar' : undefined"
         >
           {{ t('review.continue') }}

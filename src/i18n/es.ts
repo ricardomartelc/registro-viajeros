@@ -34,6 +34,7 @@ export const es = {
   'steps.review': 'Revisar',
   'steps.position': 'Paso {actual} de {total}',
   'steps.done': 'Todos los pasos completados',
+  'dev.freeNavigation': 'Modo pruebas: puede avanzar y retroceder aunque falten datos.',
 
   'draft.notice': 'Se guarda solo en su móvil mientras rellena y se borra al terminar.',
   'draft.unavailable':
@@ -116,7 +117,15 @@ export const es = {
   'final.step1Title': 'Descargue su archivo',
   'final.step1Text': 'Es el archivo con los datos que acaba de revisar.',
   'final.download': 'Descargar archivo',
-  'final.downloadSoon': 'Disponible muy pronto.',
+  'final.share': 'Compartir archivo',
+  'final.downloaded': 'Archivo descargado.',
+  'final.shared': 'Archivo compartido.',
+  'final.fileError':
+    'No se ha podido crear el archivo. Vuelva a revisar sus datos e inténtelo de nuevo.',
+  'final.shareError': 'No se ha podido compartir. Use "Descargar archivo".',
+  'final.helpTitle': '¿No se ha guardado?',
+  'final.helpText':
+    'En iPhone el archivo puede abrirse en pantalla en lugar de guardarse. Use Compartir y después Guardar en Archivos.',
   'final.step2Title': 'Envíelo por correo',
   'final.step2Text': 'Adjunte el archivo y escriba el localizador de su reserva en el asunto.',
   'final.emailLabel': 'Dirección de envío',

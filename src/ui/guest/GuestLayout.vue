@@ -3,6 +3,7 @@ import { computed } from 'vue'
 import StepIndicator from '../shared/StepIndicator.vue'
 import DraftNotice from './DraftNotice.vue'
 import { t } from '../../i18n'
+import { FREE_NAVIGATION } from '../../config'
 
 // Marco común de las pantallas del formulario: pasos, título, introducción,
 // aviso de guardado y el contenido de cada pantalla.
@@ -36,6 +37,8 @@ const stepText = computed(() =>
 
 <template>
   <main class="screen">
+    <!-- Solo con npm run dev: recuerda que se puede avanzar aunque falten datos -->
+    <p v-if="FREE_NAVIGATION" class="screen__dev">{{ t('dev.freeNavigation') }}</p>
     <StepIndicator :steps="steps" :current="step" />
     <p class="screen__step">{{ stepText }}</p>
     <h1 tabindex="-1" class="screen__title">{{ title }}</h1>
@@ -55,6 +58,15 @@ const stepText = computed(() =>
   margin: 0 auto;
   padding: calc(var(--space-4) + env(safe-area-inset-top)) var(--space-4)
     calc(var(--space-7) + env(safe-area-inset-bottom));
+}
+.screen__dev {
+  margin: 0;
+  padding: var(--space-2) var(--space-3);
+  border: 1px dashed var(--color-ink);
+  border-radius: var(--radius-field);
+  background: var(--color-surface);
+  font-size: var(--text-sm);
+  font-weight: 600;
 }
 .screen__step {
   margin: 0;

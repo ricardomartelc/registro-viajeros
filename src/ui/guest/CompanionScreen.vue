@@ -16,6 +16,7 @@ import {
 } from './bookingState'
 import { locale, t } from '../../i18n'
 import { countryName } from '../../i18n/countries'
+import { FREE_NAVIGATION } from '../../config'
 
 // Pantalla de UN acompañante ("Acompañante 2 de 4"). index = posición en la lista
 // de personas (0 es el titular, así que aquí siempre es 1 o más).
@@ -65,7 +66,8 @@ async function submit(): Promise<void> {
   applySharedData()
   form.clean()
   form.submitted.value = true
-  if (form.errors.value.length > 0) {
+  // Con errores no se avanza (salvo en el modo pruebas de navegación libre, ver config.ts)
+  if (form.errors.value.length > 0 && !FREE_NAVIGATION) {
     await nextTick()
     summary.value?.focus()
     return
