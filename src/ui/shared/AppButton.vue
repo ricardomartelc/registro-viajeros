@@ -46,13 +46,21 @@ withDefaults(
 .btn:active {
   transform: scale(0.98);
 }
+/* Desactivado: fondo de línea y texto apagado. La pantalla debe explicar al lado por qué. */
+.btn:disabled {
+  background: var(--color-line);
+  border-color: var(--color-line);
+  color: var(--color-muted);
+  cursor: not-allowed;
+  transform: none;
+}
 .btn--primary {
   background: var(--color-accent);
   color: var(--color-on-accent);
 }
 /* Hover solo en dispositivos con ratón: en pantallas táctiles se quedaría "pegado" al tocar. */
 @media (hover: hover) {
-  .btn--primary:hover {
+  .btn--primary:hover:not(:disabled) {
     background: var(--color-accent-hover);
   }
   .btn--glass-accent:hover {

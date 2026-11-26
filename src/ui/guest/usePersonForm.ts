@@ -1,6 +1,6 @@
 import { computed, reactive, ref, watch } from 'vue'
-import { booking, localToday } from './bookingState'
-import { summaryItems } from './fieldLabels'
+import { booking, localToday, reviewNav } from './bookingState'
+import { personFieldId, summaryItems } from './fieldLabels'
 import { errorText } from '../../i18n/errors'
 import { cleanPerson } from '../../domain/normalize'
 import { relationshipRequiredAtAge, supportNumberRequiredFor } from '../../domain/rules'
@@ -22,8 +22,9 @@ export function usePersonForm(personIndex: number) {
   const errors = computed(() => result.value.errors)
 
   // Un error se enseña cuando la persona ha salido del campo o ha pulsado "Siguiente".
+  // Si se llega desde un error de Revisar, los errores se enseñan desde el principio.
   const touched = reactive(new Set<FieldPath>())
-  const submitted = ref(false)
+  const submitted = ref(reviewNav.focusField !== null)
 
   function errorFor(...fields: FieldPath[]): string | undefined {
     if (!submitted.value && !fields.some((field) => touched.has(field))) return undefined
@@ -43,8 +44,7 @@ export function usePersonForm(personIndex: number) {
   }
 
   // id de cada campo: 'address.city' → 'campo-address-city'. El error de contacto lleva al teléfono.
-  const fieldId = (field: FieldPath) =>
-    field === 'contact' ? 'campo-phone' : `campo-${field.replace('.', '-')}`
+  const fieldId = personFieldId
 
   const summaryList = computed(() =>
     submitted.value ? summaryItems(errors.value, fieldId) : [],

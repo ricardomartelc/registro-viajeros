@@ -5,6 +5,7 @@ import LanguageSwitch from '../shared/LanguageSwitch.vue'
 import type { IconName } from '../shared/icons'
 import { t, type MessageKey } from '../../i18n'
 import fotoCasa from '../../assets/photos/plano-general-casa.jpg'
+import { dataCleared } from './bookingState'
 
 // "Comenzar" avisa a App.vue, que cambia a la pantalla Estancia.
 const emit = defineEmits<{ start: [] }>()
@@ -21,7 +22,14 @@ const steps: { icon: IconName; title: MessageKey; text: MessageKey }[] = [
   <main class="welcome">
     <!-- Primera pantalla: foto a pantalla completa. Texto arriba (sobre el cielo), botón abajo. -->
     <section class="hero" aria-labelledby="welcome-title">
-      <img class="hero__photo" :src="fotoCasa" :alt="t('welcome.photoAlt')" />
+      <!-- width y height: tamaño real de la foto, para que la página no salte al cargarla -->
+      <img
+        class="hero__photo"
+        :src="fotoCasa"
+        :alt="t('welcome.photoAlt')"
+        width="1193"
+        height="2576"
+      />
       <!-- Velo muy suave arriba: solo asegura el contraste del texto sobre el cielo -->
       <div class="hero__veil" aria-hidden="true"></div>
 
@@ -31,6 +39,8 @@ const steps: { icon: IconName; title: MessageKey; text: MessageKey }[] = [
           <span class="hero__brand" aria-hidden="true">{{ t('brand') }}</span>
           <LanguageSwitch />
         </header>
+        <!-- Tras borrar los datos desde la pantalla Final -->
+        <p v-if="dataCleared" role="status" class="hero__cleared">{{ t('draft.cleared') }}</p>
         <div class="hero__heading">
           <h1 id="welcome-title" class="hero__title" tabindex="-1">{{ t('brand') }}</h1>
           <p class="hero__place">{{ t('welcome.place') }}</p>
@@ -124,6 +134,15 @@ const steps: { icon: IconName; title: MessageKey; text: MessageKey }[] = [
   align-items: center;
   justify-content: space-between;
   padding: calc(var(--space-3) + env(safe-area-inset-top)) var(--space-4) 0;
+}
+/* Aviso sobre la foto: fondo sólido (no cristal) para que se lea siempre */
+.hero__cleared {
+  margin: var(--space-3) var(--space-4) 0;
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+  color: var(--color-ink);
+  font-weight: 600;
 }
 .hero__brand {
   font-family: var(--font-display);

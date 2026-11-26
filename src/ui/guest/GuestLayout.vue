@@ -7,7 +7,15 @@ import { t } from '../../i18n'
 // Marco común de las pantallas del formulario: pasos, título, introducción,
 // aviso de guardado y el contenido de cada pantalla.
 // El título lleva tabindex="-1": App.vue le pasa el foco al cambiar de pantalla.
-const props = defineProps<{ step: number; title: string; intro?: string }>()
+// - step: paso actual empezando en 0. Si es igual o mayor que el número de pasos
+//   (pantalla Final), todos se ven completados.
+// - hideDraftNotice: oculta el aviso de guardado (la pantalla Final tiene su propio paso de borrar).
+const props = defineProps<{
+  step: number
+  title: string
+  intro?: string
+  hideDraftNotice?: boolean
+}>()
 
 const steps = computed(() => [
   { icon: 'home' as const, label: t('steps.stay') },
@@ -16,11 +24,13 @@ const steps = computed(() => [
   { icon: 'check' as const, label: t('steps.review') },
 ])
 
-// Texto "Paso 1 de 4" para lectores de pantalla y vista
+// Texto "Paso 1 de 4" (o "Todos los pasos completados" en la pantalla Final)
 const stepText = computed(() =>
-  t('steps.position')
-    .replace('{actual}', String(props.step + 1))
-    .replace('{total}', String(steps.value.length)),
+  props.step >= steps.value.length
+    ? t('steps.done')
+    : t('steps.position')
+        .replace('{actual}', String(props.step + 1))
+        .replace('{total}', String(steps.value.length)),
 )
 </script>
 
@@ -30,7 +40,7 @@ const stepText = computed(() =>
     <p class="screen__step">{{ stepText }}</p>
     <h1 tabindex="-1" class="screen__title">{{ title }}</h1>
     <p v-if="intro" class="screen__intro">{{ intro }}</p>
-    <DraftNotice />
+    <DraftNotice v-if="!hideDraftNotice" />
     <slot />
   </main>
 </template>
@@ -59,5 +69,6 @@ const stepText = computed(() =>
 }
 .screen__intro {
   margin: 0;
+  max-width: 65ch; /* línea cómoda de leer: entre 45 y 75 caracteres */
 }
 </style>

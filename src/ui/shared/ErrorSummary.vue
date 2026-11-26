@@ -1,24 +1,28 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { t } from '../../i18n'
+import { focusField } from './focusField'
 
 // Resumen de errores arriba del formulario (patrón GOV.UK).
 // Cada error es un enlace que lleva al campo. La pantalla llama a focus() al pulsar
 // "Siguiente" con errores, para que el lector de pantalla lo lea en primer lugar.
 // Cada error dice de qué campo es: "Localizador de la reserva: Este dato es obligatorio."
-defineProps<{ items: { id: string; label?: string; text: string }[] }>()
+// - action (opcional): qué hacer al pulsar en vez de ir al campo de esta pantalla
+//   (en Revisar: abrir la pantalla donde está el campo).
+export interface ErrorSummaryItem {
+  id: string
+  label?: string
+  text: string
+  action?: () => void
+}
+defineProps<{ items: ErrorSummaryItem[] }>()
 
 const box = ref<HTMLElement>()
 defineExpose({ focus: () => box.value?.focus() })
 
-// Lleva el foco al campo; si el id es de un grupo (fecha, chips), al primer control de dentro.
-function goTo(id: string): void {
-  const element = document.getElementById(id)
-  if (!element) return
-  const target = element.matches('input, select, textarea')
-    ? element
-    : (element.querySelector<HTMLElement>('input, select, textarea') ?? element)
-  target.focus()
+function select(item: ErrorSummaryItem): void {
+  if (item.action) item.action()
+  else focusField(item.id)
 }
 </script>
 
@@ -32,8 +36,9 @@ function goTo(id: string): void {
   >
     <h2 id="resumen-errores-titulo" class="summary__title">{{ t('errors.title') }}</h2>
     <ul class="summary__list">
-      <li v-for="item in items" :key="item.id + item.text">
-        <a :href="`#${item.id}`" class="summary__link" @click.prevent="goTo(item.id)">
+      <!-- key por posición: en Revisar, dos personas pueden tener el mismo campo y error -->
+      <li v-for="(item, index) in items" :key="index">
+        <a :href="`#${item.id}`" class="summary__link" @click.prevent="select(item)">
           <span v-if="item.label" class="summary__field">{{ item.label }}:</span>
           {{ item.text }}
         </a>

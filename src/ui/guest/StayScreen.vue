@@ -8,8 +8,8 @@ import FormRow from '../shared/FormRow.vue'
 import SelectField from '../shared/SelectField.vue'
 import TextField from '../shared/TextField.vue'
 import GuestLayout from './GuestLayout.vue'
-import { booking, companionsWithData, syncPeopleCount } from './bookingState'
-import { summaryItems } from './fieldLabels'
+import { booking, companionsWithData, reviewNav, syncPeopleCount } from './bookingState'
+import { stayFieldId, summaryItems } from './fieldLabels'
 import { t, type MessageKey } from '../../i18n'
 import { errorText } from '../../i18n/errors'
 import { cleanStay } from '../../domain/normalize'
@@ -20,8 +20,9 @@ import { validateStay, type FieldPath } from '../../domain/validateBooking'
 const emit = defineEmits<{ back: []; next: [] }>()
 
 // Un error se enseña cuando la persona ha salido del campo o ha pulsado "Siguiente".
+// Si se llega desde un error de Revisar, los errores se enseñan desde el principio.
 const touched = reactive(new Set<FieldPath>())
-const submitted = ref(false)
+const submitted = ref(reviewNav.focusField !== null)
 const errors = computed(() => validateStay(booking.stay))
 
 function errorFor(field: FieldPath): string | undefined {
@@ -37,7 +38,7 @@ function leave(field: FieldPath): void {
 }
 
 // id de cada campo (lo usan los enlaces del resumen de errores)
-const fieldId = (field: FieldPath) => `campo-${field}`
+const fieldId = stayFieldId
 
 const summary = ref<InstanceType<typeof ErrorSummary>>()
 const summaryList = computed(() => (submitted.value ? summaryItems(errors.value, fieldId) : []))

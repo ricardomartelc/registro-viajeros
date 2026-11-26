@@ -18,6 +18,12 @@ export function cleanStay(stay: Stay): Stay {
   }
 }
 
+// Números de documento y de soporte: se aceptan como los escriba la persona
+// ('12.345.678-z', 'ab 123 456') y se guardan en mayúsculas, sin espacios, guiones ni puntos.
+export function cleanCode(text: string): string {
+  return text.toUpperCase().replace(/[\s.-]/g, '')
+}
+
 // Copia de la persona con todos los textos limpios.
 export function cleanPerson(person: Person): Person {
   return {
@@ -27,8 +33,8 @@ export function cleanPerson(person: Person): Person {
     surname2: cleanSpaces(person.surname2),
     birthDate: cleanSpaces(person.birthDate),
     nationality: cleanSpaces(person.nationality),
-    documentNumber: cleanSpaces(person.documentNumber),
-    supportNumber: cleanSpaces(person.supportNumber),
+    documentNumber: cleanCode(person.documentNumber),
+    supportNumber: cleanCode(person.supportNumber),
     phone: cleanSpaces(person.phone),
     email: cleanSpaces(person.email),
     relationship: cleanSpaces(person.relationship),

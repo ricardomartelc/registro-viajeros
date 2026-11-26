@@ -105,12 +105,31 @@ export function companionsWithData(count: number): number[] {
   return result
 }
 
+// Navegación desde Revisar:
+// - returnToReview ("volverARevisar"): se ha pulsado "Cambiar" o un error en Revisar.
+//   "Siguiente" en la pantalla editada vuelve directamente a Revisar. Se borra al llegar.
+// - focusField: id del campo al que llevar el foco al abrir la pantalla (enlace de un error).
+//   Mientras está puesto, la pantalla enseña sus errores desde el principio.
+export const reviewNav = reactive({
+  returnToReview: false,
+  focusField: null as string | null,
+})
+
+// Casilla de confirmación de Revisar, marcada al pulsar "Continuar". La pantalla Final la exige.
+export const confirmed = ref(false)
+
+// Aviso "Sus datos se han borrado." en la bienvenida, tras borrar desde la pantalla Final.
+export const dataCleared = ref(false)
+
 // "Borrar mis datos": vacía el formulario, las casillas y lo guardado.
 export function resetBooking(): void {
   const fresh = emptyBooking()
   booking.stay = fresh.stay
   booking.people = fresh.people
   Object.assign(formFlags, emptyFormFlags())
+  confirmed.value = false
+  reviewNav.returnToReview = false
+  reviewNav.focusField = null
   clearDraft()
   clearFormFlags()
 }

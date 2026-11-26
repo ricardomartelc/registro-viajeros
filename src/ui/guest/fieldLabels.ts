@@ -35,6 +35,19 @@ export const FIELD_LABELS: Partial<Record<FieldPath, MessageKey>> = {
 
 const FIELD_ORDER = Object.keys(FIELD_LABELS)
 
+// id de cada campo en pantalla (los usan los enlaces de los resúmenes de errores).
+// Estancia: 'campo-reference'. Persona: 'address.city' → 'campo-address-city';
+// el error de contacto (teléfono o correo) lleva al teléfono.
+export const stayFieldId = (field: FieldPath): string => `campo-${field}`
+export const personFieldId = (field: FieldPath): string =>
+  field === 'contact' ? 'campo-phone' : `campo-${field.replace('.', '-')}`
+
+// Nombre visible de un campo (o '' si no tiene).
+export function fieldLabel(field: FieldPath): string {
+  const key = FIELD_LABELS[field]
+  return key ? t(key) : ''
+}
+
 // Convierte los errores del dominio en las líneas del resumen: enlace al campo,
 // nombre del campo y texto del error.
 export function summaryItems(errors: ValidationError[], fieldId: (field: FieldPath) => string) {

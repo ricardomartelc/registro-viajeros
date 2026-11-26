@@ -61,6 +61,16 @@ Compatibilidad móvil (iPhone y Android):
 - Sin APIs ni estilos exclusivos de iOS o de Android: controles nativos del navegador. El cristal siempre tiene alternativa con `@supports`.
 - Ninguna pieza fija una fuente propia: todas usan `--font-body` y `--font-display`.
 
+## Revisar y Final
+- Revisar sigue el patrón "Comprueba tus respuestas" de GOV.UK: una tarjeta de resumen (filas alternas blanco y marfil) por bloque (Estancia, Titular, cada Acompañante), con un botón "Cambiar" de contorno junto al título. Su nombre accesible dice qué cambia ("Cambiar acompañante 2").
+- "Cambiar" (o un error) abre esa pantalla; "Siguiente" allí vuelve directamente a Revisar. Si se llega desde un error, el foco va al campo y los errores se ven desde el principio.
+- Los errores salen arriba, con la persona o bloque y el campo ("Acompañante 2: Fecha de nacimiento: …"). La tarjeta con errores lleva borde rojo y un texto ("Hay datos por corregir en este bloque."). Con errores, "Continuar" queda desactivado y un texto explica por qué.
+- Casilla de confirmación obligatoria antes de "Continuar" (botón rojo, único principal).
+- Fechas legibles en el idioma elegido ("12 de julio de 2027") y cifras con `font-variant-numeric: tabular-nums`.
+- Final: título "Casi listo" y tres pasos numerados grandes en una lista agrupada (descargar, enviar por correo, borrar los datos). Sin aviso de guardado arriba: el borrado es el paso 3. En el indicador, todos los pasos completados.
+- La dirección de correo se muestra entera y seleccionable; "Copiar dirección" confirma con texto, y si el navegador no deja copiar, la enseña en un campo ya seleccionado.
+- Títulos con `text-wrap: balance`, párrafos con `text-wrap: pretty` y textos largos de 65 caracteres como máximo por línea.
+
 ## Pantallas del huésped
 Bienvenida · Estancia · Datos (por persona) · Acompañantes · Revisar · Final.
 

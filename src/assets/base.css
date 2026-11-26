@@ -41,6 +41,18 @@ h3 {
   font-weight: 400;
   line-height: 1.1;
   margin: 0;
+  text-wrap: balance; /* reparte el título en líneas de largo parecido */
+}
+
+/* Párrafos: evita una palabra suelta en la última línea */
+p {
+  text-wrap: pretty;
+}
+
+/* Imágenes: nunca más anchas que su caja (con width y height en el HTML no hay saltos) */
+img {
+  max-width: 100%;
+  height: auto;
 }
 
 a {

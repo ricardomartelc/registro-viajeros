@@ -26,7 +26,6 @@ const emit = defineEmits<{ back: []; next: [] }>()
 const form = usePersonForm(props.index)
 const holder = computed(() => booking.people[0]!)
 const total = computed(() => booking.people.length)
-const isLast = computed(() => props.index === total.value - 1)
 
 const title = computed(() =>
   t('companions.title')
@@ -61,23 +60,17 @@ const holderContactText = computed(() =>
 onMounted(() => applySharedData())
 
 const summary = ref<InstanceType<typeof ErrorSummary>>()
-const reviewPending = ref(false)
 
 async function submit(): Promise<void> {
   applySharedData()
   form.clean()
   form.submitted.value = true
   if (form.errors.value.length > 0) {
-    reviewPending.value = false
     await nextTick()
     summary.value?.focus()
     return
   }
-  // Último acompañante: la pantalla Revisar todavía no existe.
-  if (isLast.value) {
-    reviewPending.value = true
-    return
-  }
+  // App.vue decide: el siguiente acompañante, o Revisar si es el último o se viene de Revisar.
   emit('next')
 }
 </script>
@@ -104,9 +97,6 @@ async function submit(): Promise<void> {
         </template>
       </PersonFields>
 
-      <!-- role="status": el lector de pantalla lo anuncia sin mover el foco -->
-      <p role="status" class="pending">{{ reviewPending ? t('review.pending') : '' }}</p>
-
       <div class="actions">
         <AppButton type="submit" class="actions__button">{{ t('nav.next') }}</AppButton>
         <AppButton variant="outline" class="actions__button" @click="emit('back')">
@@ -122,16 +112,6 @@ async function submit(): Promise<void> {
   display: flex;
   flex-direction: column;
   gap: var(--space-5);
-}
-.pending {
-  margin: 0;
-  padding: var(--space-3) var(--space-4);
-  border: 1px solid var(--color-line);
-  border-radius: var(--radius-card);
-  background: var(--color-surface);
-}
-.pending:empty {
-  display: none;
 }
 .actions {
   display: flex;

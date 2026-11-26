@@ -76,7 +76,7 @@ const barActive = ref('inicio')
       <AppButton class="full">Principal (primary)</AppButton>
       <AppButton variant="outline" class="full">Secundario (outline)</AppButton>
       <div class="photo">
-        <img :src="fotoCasa" alt="" />
+        <img :src="fotoCasa" alt="" width="1193" height="2576" />
         <div class="photo__buttons">
           <AppButton variant="glass-accent">
             Cristal rojo <AppIcon name="arrow" />

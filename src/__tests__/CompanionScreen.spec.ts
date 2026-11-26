@@ -92,13 +92,13 @@ describe('Pantalla Acompañante', () => {
     wrapper.unmount()
   })
 
-  it('correcto y es el último: aviso de Revisar en preparación', async () => {
+  // Bloque 4: el último acompañante también avisa con 'next' (App.vue lleva a Revisar).
+  it('correcto y es el último: también avanza (a Revisar)', async () => {
     prepare(2)
     fillCompanion(1)
     const wrapper = mount(CompanionScreen, { props: { index: 1 }, attachTo: document.body })
     await wrapper.find('form').trigger('submit')
-    expect(wrapper.emitted('next')).toBeUndefined()
-    expect(wrapper.text()).toContain('Siguiente paso: revisar (en preparación).')
+    expect(wrapper.emitted('next')).toHaveLength(1)
     wrapper.unmount()
   })
 })

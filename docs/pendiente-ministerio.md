@@ -55,3 +55,21 @@ Todas en `src/domain/rules.ts` (línea 4: "TODAS por confirmar con el XSD del mi
 | Parentesco obligatorio para menores | Sí | `src/domain/rules.ts:12-13` |
 | Código postal español con provincia 01 a 52 | Sí | `src/domain/rules.ts:18-19` |
 | Nacidos el 29 de febrero, en año no bisiesto | Cumplen el 1 de marzo (prudente) | `src/domain/dates.ts:53` |
+
+## Archivo y envío
+
+| Pendiente | Valor actual | Dónde |
+|---|---|---|
+| Generar el XML parcial (nombre del archivo, estructura, codificación) según la plantilla y el XSD | No implementado: devuelve "noImplementado"; el botón "Descargar archivo" está desactivado | `src/export/buildPartialFile.ts` |
+| Dirección real de recepción del propietario | Ejemplo `registro@ejemplo.invalid`; la real irá en la variable de entorno `VITE_RECEPTION_EMAIL` (archivo `.env.local`, que no se sube) | `src/config.ts` |
+| ¿Qué debe poner el asunto del correo? | "El localizador de su reserva" (decisión provisional del propietario) | `src/i18n/es.ts` (`final.step2Text`) |
+
+## Textos por revisar jurídicamente
+
+No son del ministerio, pero tienen efecto legal: revisarlos antes de publicar.
+
+| Texto | Dónde |
+|---|---|
+| Casilla de Revisar: "Confirmo que los datos son correctos y que estoy autorizado a facilitar los de las demás personas." | `src/i18n/es.ts` y `en.ts` (`review.confirm`) |
+| Nota de privacidad de la pantalla Final: "Sus datos no se guardan en ningún servidor." | `src/i18n/es.ts` y `en.ts` (`final.privacy`) |
+| Aviso de privacidad completo (el enlace de la bienvenida aún no tiene destino) | `src/ui/guest/WelcomeScreen.vue` |

@@ -68,16 +68,16 @@ describe('App: acompañantes', () => {
     wrapper.unmount()
   })
 
-  it('desde el último acompañante, "Siguiente" no navega: solo enseña el aviso', async () => {
+  // Bloque 4: desde el último acompañante se va a Revisar (nunca a un acompañante inexistente).
+  it('desde el último acompañante, "Siguiente" lleva a Revisar', async () => {
     prepare(2)
     fillCompanion(1)
     history.replaceState({ companion: 1 }, '', '#acompanantes')
     const wrapper = mountApp()
     await wrapper.find('form').trigger('submit')
     await nextTick()
-    expect(wrapper.find('h1').text()).toBe('Acompañante 2 de 2')
-    expect(history.state?.companion).toBe(1)
-    expect(wrapper.text()).toContain('Siguiente paso: revisar (en preparación).')
+    expect(location.hash).toBe('#revisar')
+    expect(wrapper.find('h1').text()).toBe('Revise sus datos')
     wrapper.unmount()
   })
 
