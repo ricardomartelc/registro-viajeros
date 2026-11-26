@@ -9,9 +9,7 @@ function validStay(numberOfPeople: number) {
   Object.assign(booking.stay, {
     reference: 'RES-0001',
     checkInDate: '2027-07-12',
-    checkInTime: '16:00',
     checkOutDate: '2027-07-19',
-    checkOutTime: '11:00',
     numberOfPeople,
   })
 }

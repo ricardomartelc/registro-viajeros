@@ -5,26 +5,38 @@ import DateField from '../shared/DateField.vue'
 import ErrorSummary from '../shared/ErrorSummary.vue'
 import FormGroup from '../shared/FormGroup.vue'
 import FormRow from '../shared/FormRow.vue'
-import SelectField from '../shared/SelectField.vue'
 import TextField from '../shared/TextField.vue'
 import GuestLayout from './GuestLayout.vue'
-import { booking, companionsWithData, reviewNav, syncPeopleCount } from './bookingState'
+import {
+  booking,
+  companionsWithData,
+  localToday,
+  reviewNav,
+  syncPeopleCount,
+} from './bookingState'
 import { stayFieldId, summaryItems } from './fieldLabels'
-import { t, type MessageKey } from '../../i18n'
+import { t } from '../../i18n'
 import { errorText } from '../../i18n/errors'
 import { cleanStay } from '../../domain/normalize'
-import { PAYMENT_METHODS } from '../../domain/payment'
+import { RULES } from '../../domain/rules'
 import { validateStay, type FieldPath } from '../../domain/validateBooking'
 import { FREE_NAVIGATION } from '../../config'
 
-// Pantalla Estancia: localizador, entrada, salida, número de personas y forma de pago.
+// Pantalla Estancia: localizador, fecha del contrato (opcional), entrada, salida y
+// número de personas. Las horas y la forma de pago las pone el propietario.
 const emit = defineEmits<{ back: []; next: [] }>()
 
 // Un error se enseña cuando la persona ha salido del campo o ha pulsado "Siguiente".
 // Si se llega desde un error de Revisar, los errores se enseñan desde el principio.
 const touched = reactive(new Set<FieldPath>())
 const submitted = ref(reviewNav.focusField !== null)
-const errors = computed(() => validateStay(booking.stay))
+const today = localToday()
+const errors = computed(() => validateStay(booking.stay, today))
+
+// "De 1 a 6 personas…"
+const peopleHint = computed(() =>
+  t('stay.peopleHint').replace('{max}', String(RULES.maxPeople)),
+)
 
 function errorFor(field: FieldPath): string | undefined {
   if (!submitted.value && !touched.has(field)) return undefined
@@ -103,17 +115,6 @@ const peopleText = computed({
     booking.stay.numberOfPeople = /^\d+$/.test(text.trim()) ? Number(text.trim()) : 0
   },
 })
-
-// Forma de pago (opcional): vacío = sin datos de pago.
-const paymentOptions = computed(() =>
-  PAYMENT_METHODS.map((method) => ({ value: method, label: t(`payment.${method}` as MessageKey) })),
-)
-const paymentMethod = computed({
-  get: () => booking.stay.payment?.method ?? '',
-  set: (method: string) => {
-    booking.stay.payment = method ? { ...booking.stay.payment, method } : undefined
-  },
-})
 </script>
 
 <template>
@@ -135,21 +136,18 @@ const paymentMethod = computed({
           />
         </FormRow>
         <FormRow>
-          <TextField
-            :id="fieldId('numberOfPeople')"
-            v-model="peopleText"
-            :label="t('stay.people')"
-            :hint="t('stay.peopleHint')"
-            :error="errorFor('numberOfPeople')"
-            inputmode="numeric"
-            autocomplete="off"
-            enterkeyhint="next"
-            @focusout="leave('numberOfPeople')"
+          <DateField
+            :id="fieldId('contractDate')"
+            v-model="booking.stay.contractDate"
+            :legend="t('stay.contractDate')"
+            :hint="t('stay.contractDateHint')"
+            :error="errorFor('contractDate')"
+            @leave="leave('contractDate')"
           />
         </FormRow>
       </FormGroup>
 
-      <FormGroup :title="t('stay.groupCheckIn')">
+      <FormGroup :title="t('stay.groupDates')">
         <FormRow>
           <DateField
             :id="fieldId('checkInDate')"
@@ -161,20 +159,6 @@ const paymentMethod = computed({
           />
         </FormRow>
         <FormRow>
-          <TextField
-            :id="fieldId('checkInTime')"
-            v-model="booking.stay.checkInTime"
-            type="time"
-            :label="t('stay.checkInTime')"
-            :error="errorFor('checkInTime')"
-            enterkeyhint="next"
-            @focusout="leave('checkInTime')"
-          />
-        </FormRow>
-      </FormGroup>
-
-      <FormGroup :title="t('stay.groupCheckOut')">
-        <FormRow>
           <DateField
             :id="fieldId('checkOutDate')"
             v-model="booking.stay.checkOutDate"
@@ -184,27 +168,21 @@ const paymentMethod = computed({
             @leave="leave('checkOutDate')"
           />
         </FormRow>
-        <FormRow>
-          <TextField
-            :id="fieldId('checkOutTime')"
-            v-model="booking.stay.checkOutTime"
-            type="time"
-            :label="t('stay.checkOutTime')"
-            :error="errorFor('checkOutTime')"
-            enterkeyhint="next"
-            @focusout="leave('checkOutTime')"
-          />
-        </FormRow>
       </FormGroup>
 
-      <FormGroup :title="t('stay.groupPayment')">
+      <!-- Aviso: si viaja un menor de 18, se pedirá su parentesco -->
+      <FormGroup :title="t('stay.groupPeople')" :note="t('stay.minorsNote')">
         <FormRow>
-          <SelectField
-            id="campo-payment"
-            v-model="paymentMethod"
-            :label="t('stay.payment')"
-            :options="paymentOptions"
-            optional
+          <TextField
+            :id="fieldId('numberOfPeople')"
+            v-model="peopleText"
+            :label="t('stay.people')"
+            :hint="peopleHint"
+            :error="errorFor('numberOfPeople')"
+            inputmode="numeric"
+            autocomplete="off"
+            enterkeyhint="done"
+            @focusout="leave('numberOfPeople')"
           />
         </FormRow>
       </FormGroup>

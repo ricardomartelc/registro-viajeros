@@ -7,9 +7,7 @@ export function fillValidBooking(total: number): void {
   Object.assign(booking.stay, {
     reference: 'RES-0001',
     checkInDate: '2027-07-12',
-    checkInTime: '16:00',
     checkOutDate: '2027-07-19',
-    checkOutTime: '11:00',
     numberOfPeople: total,
   })
   Object.assign(booking.people[0]!, {
@@ -22,7 +20,7 @@ export function fillValidBooking(total: number): void {
     documentType: 'dni',
     documentNumber: '12345678Z',
     supportNumber: 'AAA000000',
-    address: { street: 'Calle Inventada 1', city: 'Alcúdia', postalCode: '07400', country: 'ES' },
+    address: { street: 'Calle Inventada 1', complement: '', city: 'Alcúdia', postalCode: '07400', country: 'ES' },
     phone: '+34 600 000 000',
     email: 'ana@ejemplo.test',
   })

@@ -6,12 +6,16 @@ import { buildPartialXml, escapeXml } from '../xml/buildPartialXml'
 import { buildPartialFile, partialFileName } from '../export/buildPartialFile'
 import { madridDateTime, madridOffset } from '../xml/timeZone'
 import {
+  ADDRESS_FIELDS,
+  COMMUNICATION_NODE,
+  CONTACT_FIELDS,
+  CONTRACT_FIELDS,
   COUNTRY_ALPHA3,
-  PEOPLE_NODE,
+  DOCUMENT_NUMBER_NODE,
   PERSON_FIELDS,
   PERSON_NODE,
+  REQUEST_NODE,
   ROOT,
-  CONTRACT_FIELDS,
 } from '../xml/schema'
 import { COUNTRY_CODES } from '../domain/countries'
 import { oneGuestBooking, threeGuestBooking } from './xmlBookings'
@@ -19,6 +23,8 @@ import { oneGuestBooking, threeGuestBooking } from './xmlBookings'
 // Nombres de nodo sacados de schema.ts (los tests tampoco los escriben a mano)
 const node = (key: string) => PERSON_FIELDS.find((field) => field.key === key)!.node
 const contractNode = (key: string) => CONTRACT_FIELDS.find((field) => field.key === key)!.node
+const addressNode = (key: string) => ADDRESS_FIELDS.find((field) => field.key === key)!.node
+const contactNode = (key: string) => CONTACT_FIELDS.find((field) => field.key === key)!.node
 
 function parse(xml: string): Document {
   const doc = new DOMParser().parseFromString(xml, 'application/xml')
@@ -38,54 +44,100 @@ const texts = (doc: Document, tag: string) =>
 describe('XML parcial', () => {
   afterEach(() => vi.restoreAllMocks())
 
-  it('1 persona: bien formado, espacio de nombres correcto, cabecera UTF-8 y una persona TI', () => {
+  it('1 persona: bien formado, espacio de nombres correcto, cabecera UTF-8', () => {
     const xml = build()
     expect(xml.startsWith('<?xml version="1.0" encoding="UTF-8"?>')).toBe(true)
     const doc = parse(xml)
     expect(doc.documentElement.nodeName).toBe(ROOT.name)
     expect(doc.documentElement.namespaceURI).toBe(ROOT.namespace)
-    expect(doc.getElementsByTagName(PEOPLE_NODE)).toHaveLength(1)
     expect(doc.getElementsByTagName(PERSON_NODE)).toHaveLength(1)
-    expect(texts(doc, node('role'))).toEqual(['TI'])
   })
 
-  it('3 personas: titular TI y acompañantes VI, en el orden de la lista', () => {
+  it('estructura: peticion > solicitud > comunicacion > contrato y personas', () => {
     const doc = parse(build(threeGuestBooking()))
-    expect(doc.getElementsByTagName(PERSON_NODE)).toHaveLength(3)
-    expect(texts(doc, node('role'))).toEqual(['TI', 'VI', 'VI'])
+    const request = doc.documentElement.getElementsByTagName(REQUEST_NODE)[0]!
+    const communication = request.getElementsByTagName(COMMUNICATION_NODE)[0]!
+    const children = Array.from(communication.children).map((child) => child.nodeName)
+    expect(children).toEqual(['contrato', PERSON_NODE, PERSON_NODE, PERSON_NODE])
+  })
+
+  it('todas las personas llevan rol VI (no hay TI), en el orden de la lista', () => {
+    const doc = parse(build(threeGuestBooking()))
+    expect(texts(doc, node('role'))).toEqual(['VI', 'VI', 'VI'])
     expect(texts(doc, node('firstName'))).toEqual(['Ana', 'Luis', 'Leo'])
   })
 
-  it('fechas: simples AAAA-MM-DD y con hora y desfase (invierno +01:00, verano +02:00)', () => {
-    const winter = parse(build())
-    expect(texts(winter, contractNode('checkIn'))).toEqual(['2027-01-15T16:00:00+01:00'])
-    expect(texts(winter, node('birthDate'))).toEqual(['1985-03-10'])
+  it('fechas solo AAAA-MM-DD (sin hora); fecha del contrato solo si existe', () => {
+    const one = parse(build())
+    expect(texts(one, contractNode('checkInDate'))).toEqual(['2027-01-15'])
+    expect(texts(one, contractNode('checkOutDate'))).toEqual(['2027-01-20'])
+    expect(texts(one, contractNode('contractDate'))).toEqual([]) // no rellenada: se omite
+    expect(texts(one, node('birthDate'))).toEqual(['1985-03-10'])
 
-    const summer = parse(build(threeGuestBooking()))
-    expect(texts(summer, contractNode('checkIn'))).toEqual(['2027-07-12T16:00:00+02:00'])
-    expect(texts(summer, contractNode('checkOut'))).toEqual(['2027-07-19T11:00:00+02:00'])
+    const three = parse(build(threeGuestBooking()))
+    expect(texts(three, contractNode('contractDate'))).toEqual(['2027-05-20'])
   })
 
-  it('países y nacionalidades en ISO alfa-3', () => {
+  it('el archivo del huésped NO lleva datos del propietario (pago, horas, establecimiento…)', () => {
+    const xml = build(threeGuestBooking())
+    for (const tag of ['pago', 'tipoPago', 'codigoEstablecimiento', 'numHabitaciones', 'internet']) {
+      expect(xml).not.toContain(`<${tag}>`)
+    }
+    expect(xml).not.toMatch(/T\d{2}:\d{2}/) // ninguna hora
+  })
+
+  it('códigos: NIF/NIE/PAS/OTRO, sexo H/M/O, países y nacionalidades alfa-3', () => {
     const doc = parse(build(threeGuestBooking()))
+    expect(texts(doc, node('documentType'))).toEqual(['NIF', 'PAS'])
+    expect(texts(doc, node('sex'))).toEqual(['M', 'H', 'H'])
     expect(texts(doc, node('nationality'))).toEqual(['ESP', 'DEU', 'FRA'])
-    expect(build(threeGuestBooking())).toContain('>ESP<')
-  })
+    expect(texts(doc, addressNode('country'))).toEqual(['ESP', 'ESP', 'ESP'])
 
-  it('el menor lleva parentesco y no lleva documento; los adultos no llevan parentesco', () => {
-    const doc = parse(build(threeGuestBooking()))
-    expect(texts(doc, node('relationship'))).toEqual(['Hijo'])
-    expect(texts(doc, node('documentType'))).toEqual(['DNI', 'PASAPORTE'])
-  })
-
-  it('omite los nodos opcionales vacíos (sin segundo apellido, sin pago)', () => {
     const booking = oneGuestBooking()
-    booking.people[0]!.surname2 = ''
+    Object.assign(booking.people[0]!, { documentType: 'nie', documentNumber: 'X1234567L' })
+    expect(texts(parse(build(booking)), node('documentType'))).toEqual(['NIE'])
+    Object.assign(booking.people[0]!, { documentType: 'otro', documentNumber: 'ZZ123' })
+    expect(texts(parse(build(booking)), node('documentType'))).toEqual(['OTRO'])
+  })
+
+  it('el número de documento usa la etiqueta definida en un único sitio', () => {
+    expect(node('documentNumber')).toBe(DOCUMENT_NUMBER_NODE)
+    expect(build()).toContain(`<${DOCUMENT_NUMBER_NODE}>12345678Z</${DOCUMENT_NUMBER_NODE}>`)
+  })
+
+  it('dirección con complemento y contacto con móvil, fijo y correo', () => {
+    const doc = parse(build())
+    expect(texts(doc, addressNode('complement'))).toEqual(['2º B'])
+    expect(texts(doc, contactNode('phone'))).toEqual(['+34 600 000 000'])
+    expect(texts(doc, contactNode('phone2'))).toEqual(['971 000 000'])
+    expect(texts(doc, contactNode('email'))).toEqual(['ana@ejemplo.test'])
+  })
+
+  it('el menor lleva parentesco (código) y no lleva documento; los adultos no llevan parentesco', () => {
+    const doc = parse(build(threeGuestBooking()))
+    expect(texts(doc, node('relationship'))).toEqual(['HJ'])
+  })
+
+  it('sexo y nacionalidad se omiten si faltan (son opcionales en la plantilla)', () => {
+    const booking = oneGuestBooking()
+    booking.people[0]!.sex = ''
+    booking.people[0]!.nationality = ''
+    const doc = parse(build(booking))
+    expect(texts(doc, node('sex'))).toEqual([])
+    expect(texts(doc, node('nationality'))).toEqual([])
+  })
+
+  it('omite los nodos opcionales vacíos (segundo apellido, complemento, fijo, correo…)', () => {
+    const booking = oneGuestBooking()
+    Object.assign(booking.people[0]!, { surname2: '', phone2: '', email: '' })
+    booking.people[0]!.address.complement = ''
     const xml = build(booking)
     expect(xml).not.toContain(`<${node('surname2')}>`)
-    expect(xml).not.toContain(`<${contractNode('payment')}>`)
+    expect(xml).not.toContain(`<${addressNode('complement')}>`)
+    expect(xml).not.toContain(`<${contactNode('phone2')}>`)
     expect(xml).not.toMatch(/<(\w+)><\/\1>/) // ningún nodo vacío
   })
+
 
   it('escapa los caracteres especiales de lo que escribe el huésped', () => {
     const booking = oneGuestBooking()

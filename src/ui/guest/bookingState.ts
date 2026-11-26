@@ -1,5 +1,6 @@
 import { reactive, ref, watch } from 'vue'
 import { emptyBooking, emptyPerson } from '../../domain/create'
+import { RULES } from '../../domain/rules'
 import type { Booking } from '../../domain/types'
 import { clearDraft, loadDraft, saveDraft, storageWorks } from './draft'
 import { clearFormFlags, emptyFormFlags, loadFormFlags, saveFormFlags } from './formDraft'
@@ -39,6 +40,7 @@ export function setSameContact(index: number, value: boolean): void {
   formFlags.sameContact[index] = value
   if (!value) {
     booking.people[index]!.phone = ''
+    booking.people[index]!.phone2 = ''
     booking.people[index]!.email = ''
   }
   applySharedData()
@@ -52,14 +54,16 @@ export function applySharedData(): void {
     if (sameAddressFor(index)) person.address = { ...holder.address }
     if (sameContactFor(index)) {
       person.phone = holder.phone
+      person.phone2 = holder.phone2
       person.email = holder.email
     }
   })
 }
 
-// Deja la lista con 'count' personas (mínimo 1, el titular): añade vacías o quita las últimas.
+// Deja la lista con 'count' personas (de 1, el titular, a 6, el máximo de rules.ts):
+// añade vacías o quita las últimas.
 export function syncPeopleCount(count: number): void {
-  const wanted = Math.max(1, count)
+  const wanted = Math.min(Math.max(1, count), RULES.maxPeople)
   while (booking.people.length < wanted) booking.people.push(emptyPerson())
   booking.people.splice(wanted)
   formFlags.sameAddress.splice(wanted)
@@ -99,7 +103,7 @@ export function companionsWithData(count: number): number[] {
       p.relationship,
     ]
     if (!sameAddressFor(index)) own.push(...Object.values(p.address))
-    if (!sameContactFor(index)) own.push(p.phone, p.email)
+    if (!sameContactFor(index)) own.push(p.phone, p.phone2, p.email)
     if (own.some((value) => value !== '')) result.push(index)
   }
   return result

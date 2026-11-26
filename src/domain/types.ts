@@ -1,59 +1,54 @@
 // Modelo de datos del registro de viajeros. TypeScript puro, sin Vue.
 //
-// Fechas: texto 'AAAA-MM-DD' (lo que devuelve <input type="date">).
-// Horas: texto 'HH:MM' (lo que devuelve <input type="time">).
-// Un campo vacío se guarda como texto vacío ''.
+// Fechas: texto 'AAAA-MM-DD'. Un campo vacío se guarda como texto vacío ''.
 //
-// Los códigos que usa el ministerio (países, sexo, tipo de documento, parentesco)
-// se traducirán en src/xml. Aquí guardamos valores internos.
+// Los códigos que usa el ministerio (países, sexo, tipo de documento) se traducen en
+// src/xml/schema.ts. Aquí guardamos valores internos. El parentesco ya usa los códigos
+// del documento de diseño (src/domain/relationships.ts).
+//
+// Datos fijos del propietario que el huésped NO rellena (se añaden al unir en el Bloque 6):
+// horas de entrada y salida, forma de pago (siempre PLATF), código de establecimiento,
+// número de habitaciones e internet.
 
 export type DocumentType = 'dni' | 'nie' | 'pasaporte' | 'otro'
 
-// Valores internos. Códigos del ministerio por confirmar con la plantilla del ministerio.
+// Valores internos. En el XML: H, M, O (src/xml/schema.ts).
 export type Sex = 'hombre' | 'mujer' | 'otro'
 
 export interface Address {
   street: string
+  complement: string // opcional: piso, puerta, escalera…
+  // Municipio en texto. Si el país es España, se sustituirá por un buscador con
+  // código INE cuando tengamos la lista (ver docs/pendiente-ministerio.md).
   city: string
   postalCode: string
-  // Código de país. Formato (ISO alfa-2 'ES' o alfa-3 'ESP') por confirmar con la plantilla del ministerio.
-  country: string
+  country: string // ISO alfa-2 interno ('ES'); en el XML, alfa-3 ('ESP')
 }
 
 export interface Person {
   firstName: string
   surname1: string
-  surname2: string // opcional
+  surname2: string // obligatorio si el documento es DNI; si no, opcional
   sex: Sex | ''
   birthDate: string
-  // Código de país, mismo formato que Address.country (por confirmar con la plantilla del ministerio).
-  nationality: string
+  nationality: string // ISO alfa-2 interno; en el XML, alfa-3
   documentType: DocumentType | ''
   documentNumber: string
   supportNumber: string // número de soporte del DNI o NIE, cuando aplica
   address: Address
-  phone: string
-  email: string
-  // Parentesco con un adulto de la reserva si es menor.
-  // Lista de valores por confirmar con la plantilla del ministerio.
+  phone: string // teléfono móvil (obligatorio)
+  phone2: string // teléfono fijo (opcional)
+  email: string // opcional, máximo 50 caracteres
+  // Parentesco con un adulto de la reserva si es menor: código de src/domain/relationships.ts
   relationship: string
-}
-
-// Datos de pago. Opcionales y sin validar: por confirmar con la plantilla del ministerio.
-export interface Payment {
-  method: string
-  date?: string
-  holder?: string
 }
 
 export interface Stay {
   reference: string
+  contractDate: string // opcional: fecha del correo de confirmación de Airbnb
   checkInDate: string
-  checkInTime: string
   checkOutDate: string
-  checkOutTime: string
   numberOfPeople: number
-  payment?: Payment
 }
 
 // Reserva completa: la estancia y la lista de personas.

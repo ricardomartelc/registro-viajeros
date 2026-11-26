@@ -16,7 +16,7 @@ function prepare(total: number) {
   Object.assign(booking.stay, { checkInDate: '2027-07-12', numberOfPeople: total })
   Object.assign(booking.people[0]!, {
     phone: '+34 600 000 000',
-    address: { street: 'Calle Inventada 1', city: 'Alcúdia', postalCode: '07400', country: 'ES' },
+    address: { street: 'Calle Inventada 1', complement: '', city: 'Alcúdia', postalCode: '07400', country: 'ES' },
   })
   syncPeopleCount(total)
 }

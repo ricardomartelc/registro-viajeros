@@ -3,7 +3,11 @@ import { booking, localToday, reviewNav } from './bookingState'
 import { personFieldId, summaryItems } from './fieldLabels'
 import { errorText } from '../../i18n/errors'
 import { cleanPerson } from '../../domain/normalize'
-import { relationshipRequiredAtAge, supportNumberRequiredFor } from '../../domain/rules'
+import {
+  documentRequiredAtAge,
+  relationshipRequiredAtAge,
+  supportNumberRequiredFor,
+} from '../../domain/rules'
 import { validateDate } from '../../domain/validators/dates'
 import { validatePerson, type FieldPath } from '../../domain/validateBooking'
 
@@ -61,6 +65,11 @@ export function usePersonForm(personIndex: number) {
     () => result.value.age !== null && relationshipRequiredAtAge(result.value.age),
   )
 
+  // Documento opcional: solo si se sabe que es menor de 18 a la fecha de entrada (rules.ts).
+  const documentOptional = computed(
+    () => result.value.age !== null && !documentRequiredAtAge(result.value.age),
+  )
+
   return {
     person,
     errors,
@@ -73,6 +82,7 @@ export function usePersonForm(personIndex: number) {
     summaryList,
     needsSupportNumber,
     needsRelationship,
+    documentOptional,
   }
 }
 

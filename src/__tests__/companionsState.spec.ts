@@ -19,7 +19,7 @@ function fillHolderContactAndAddress() {
   Object.assign(booking.people[0]!, {
     phone: '+34 600 000 000',
     email: 'ana@ejemplo.test',
-    address: { street: 'Calle Inventada 1', city: 'Alcúdia', postalCode: '07400', country: 'ES' },
+    address: { street: 'Calle Inventada 1', complement: '', city: 'Alcúdia', postalCode: '07400', country: 'ES' },
   })
 }
 

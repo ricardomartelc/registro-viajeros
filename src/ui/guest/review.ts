@@ -5,6 +5,7 @@ import { countryName } from '../../i18n/countries'
 import { errorText } from '../../i18n/errors'
 import { formatDate } from '../../i18n/format'
 import { relationshipRequiredAtAge } from '../../domain/rules'
+import { isRelationshipCode } from '../../domain/relationships'
 import { validateDate } from '../../domain/validators/dates'
 import { validateBooking, validatePerson, type FieldPath } from '../../domain/validateBooking'
 import type { SummaryRow } from '../shared/types'
@@ -38,27 +39,21 @@ const missing = () => t('review.missing')
 const orMissing = (text: string) => (text.trim() ? text : missing())
 const label = (key: MessageKey) => t(key)
 
-// '2027-07-12' y '16:00' → "12 de julio de 2027, 16:00"
-function dateTime(date: string, time: string): string {
-  const parts = [date ? formatDate(date, locale.value) : '', time].filter(Boolean)
-  return orMissing(parts.join(', '))
-}
+// '2027-07-12' → "12 de julio de 2027"
+const date = (text: string) => (text ? formatDate(text, locale.value) : missing())
 
 export function stayRows(): SummaryRow[] {
   const stay = booking.stay
-  const rows: SummaryRow[] = [
-    { label: label('stay.reference'), value: orMissing(stay.reference) },
-    { label: label('review.checkIn'), value: dateTime(stay.checkInDate, stay.checkInTime) },
-    { label: label('review.checkOut'), value: dateTime(stay.checkOutDate, stay.checkOutTime) },
-    { label: label('stay.people'), value: String(stay.numberOfPeople || missing()) },
-  ]
-  // Forma de pago: solo si se ha indicado (es opcional)
-  if (stay.payment?.method) {
-    rows.push({
-      label: label('stay.payment'),
-      value: t(`payment.${stay.payment.method}` as MessageKey),
-    })
+  const rows: SummaryRow[] = [{ label: label('stay.reference'), value: orMissing(stay.reference) }]
+  // Fecha del contrato: solo si se ha indicado (es opcional)
+  if (stay.contractDate) {
+    rows.push({ label: label('review.contractDate'), value: date(stay.contractDate) })
   }
+  rows.push(
+    { label: label('review.checkIn'), value: date(stay.checkInDate) },
+    { label: label('review.checkOut'), value: date(stay.checkOutDate) },
+    { label: label('stay.people'), value: String(stay.numberOfPeople || missing()) },
+  )
   return rows
 }
 
@@ -73,8 +68,13 @@ export function personRows(index: number, today: string): SummaryRow[] {
   const document = p.documentType
     ? [t(`doc.${p.documentType}` as MessageKey), p.documentNumber].filter(Boolean).join(' ')
     : ''
-  const { street, city, postalCode, country } = p.address
-  const address = [street, [postalCode, city].filter(Boolean).join(' '), country ? countryName(country, lang) : '']
+  const { street, complement, city, postalCode, country } = p.address
+  const address = [
+    street,
+    complement,
+    [postalCode, city].filter(Boolean).join(' '),
+    country ? countryName(country, lang) : '',
+  ]
     .filter(Boolean)
     .join(', ')
 
@@ -94,14 +94,17 @@ export function personRows(index: number, today: string): SummaryRow[] {
   // Opcionales: solo si tienen algo
   if (p.supportNumber) rows.push({ label: label('person.supportNumber'), value: p.supportNumber })
   rows.push({ label: label('review.address'), value: orMissing(address) })
-  if (p.phone) rows.push({ label: label('person.phone'), value: p.phone })
+  rows.push({ label: label('person.phone'), value: orMissing(p.phone) }) // móvil: obligatorio
+  if (p.phone2) rows.push({ label: label('person.phone2'), value: p.phone2 })
   if (p.email) rows.push({ label: label('person.email'), value: p.email })
-  if (!p.phone && !p.email) rows.push({ label: label('holder.groupContact'), value: missing() })
 
-  // Parentesco: solo si es menor a la fecha de entrada
+  // Parentesco: solo si es menor a la fecha de entrada (se muestra su nombre, no el código)
   const { age } = validatePerson(p, index, checkInDate(), today)
   if (age !== null && relationshipRequiredAtAge(age)) {
-    rows.push({ label: label('person.relationship'), value: orMissing(p.relationship) })
+    const relationship = isRelationshipCode(p.relationship)
+      ? t(`relationship.${p.relationship}` as MessageKey)
+      : missing()
+    rows.push({ label: label('person.relationship'), value: relationship })
   }
   return rows
 }
@@ -110,7 +113,7 @@ export function personRows(index: number, today: string): SummaryRow[] {
 
 const isAddressField = (field: FieldPath) => field.startsWith('address.')
 const isContactField = (field: FieldPath) =>
-  field === 'phone' || field === 'email' || field === 'contact'
+  field === 'phone' || field === 'phone2' || field === 'email'
 
 // Orden: estancia, titular, acompañantes; dentro de cada uno, el orden de los campos en pantalla.
 const FIELD_ORDER = Object.keys(FIELD_LABELS)

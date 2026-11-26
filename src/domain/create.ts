@@ -5,10 +5,9 @@ import type { Booking, Person, Stay } from './types'
 export function emptyStay(): Stay {
   return {
     reference: '',
+    contractDate: '',
     checkInDate: '',
-    checkInTime: '',
     checkOutDate: '',
-    checkOutTime: '',
     numberOfPeople: 1,
   }
 }
@@ -24,8 +23,9 @@ export function emptyPerson(): Person {
     documentType: '',
     documentNumber: '',
     supportNumber: '',
-    address: { street: '', city: '', postalCode: '', country: '' },
+    address: { street: '', complement: '', city: '', postalCode: '', country: '' },
     phone: '',
+    phone2: '',
     email: '',
     relationship: '',
   }

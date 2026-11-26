@@ -15,18 +15,21 @@ export const ERROR_CODES = [
   'hora.formato',
   'nacimiento.futuro',
   'salida.noPosterior',
+  'contrato.futuro', // fecha del contrato posterior a hoy
+  'contrato.posteriorEntrada', // fecha del contrato posterior a la de entrada
   // Formatos
   'cp.formato',
   'cp.provincia',
   'nombre.caracteres',
   'telefono.formato',
   'correo.formato',
+  'correo.largo', // más de 50 caracteres
   'personas.formato', // número de personas vacío o que no es un entero de 1 o más
+  'personas.maximo', // más de 6 personas
   // Reglas por edad o tipo de documento (ver rules.ts)
   'documento.obligatorio',
   'soporte.obligatorio',
   'parentesco.obligatorio',
-  'contacto.obligatorio',
   // Reglas de la reserva completa
   'reserva.personasNoCoinciden',
   'reserva.sinAdulto',

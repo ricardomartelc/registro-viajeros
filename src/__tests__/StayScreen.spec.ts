@@ -33,9 +33,7 @@ describe('Pantalla Estancia', () => {
     Object.assign(booking.stay, {
       reference: '  RES-0001 ',
       checkInDate: '2027-07-12',
-      checkInTime: '16:00',
       checkOutDate: '2027-07-19',
-      checkOutTime: '11:00',
       numberOfPeople: 2,
     })
     const wrapper = mount(StayScreen, { attachTo: document.body })
@@ -45,17 +43,40 @@ describe('Pantalla Estancia', () => {
     wrapper.unmount()
   })
 
-  it('la salida debe ser posterior a la entrada', async () => {
+  it('la fecha de salida debe ser posterior a la de entrada', async () => {
     Object.assign(booking.stay, {
       reference: 'RES-0001',
       checkInDate: '2027-07-12',
-      checkInTime: '16:00',
       checkOutDate: '2027-07-12',
-      checkOutTime: '16:00',
     })
     const wrapper = mount(StayScreen, { attachTo: document.body })
     await wrapper.find('form').trigger('submit')
-    expect(wrapper.text()).toContain('La salida debe ser posterior a la entrada.')
+    expect(wrapper.text()).toContain('La fecha de salida debe ser posterior a la de entrada.')
+    expect(wrapper.emitted('next')).toBeUndefined()
+    wrapper.unmount()
+  })
+
+  it('sin horas ni forma de pago; con fecha del contrato opcional y aviso de menores', () => {
+    const wrapper = mount(StayScreen, { attachTo: document.body })
+    expect(wrapper.find('input[type="time"]').exists()).toBe(false)
+    expect(wrapper.find('#campo-payment').exists()).toBe(false)
+    expect(wrapper.find('#campo-contractDate').exists()).toBe(true)
+    expect(wrapper.text()).toContain('Fecha del contrato (opcional)')
+    expect(wrapper.text()).toContain('Fecha del correo de confirmación de Airbnb.')
+    expect(wrapper.text()).toContain('le pediremos su parentesco')
+    wrapper.unmount()
+  })
+
+  it('como máximo 6 personas, con error claro', async () => {
+    Object.assign(booking.stay, {
+      reference: 'RES-0001',
+      checkInDate: '2027-07-12',
+      checkOutDate: '2027-07-19',
+      numberOfPeople: 7,
+    })
+    const wrapper = mount(StayScreen, { attachTo: document.body })
+    await wrapper.find('form').trigger('submit')
+    expect(wrapper.text()).toContain('Como máximo pueden alojarse 6 personas.')
     expect(wrapper.emitted('next')).toBeUndefined()
     wrapper.unmount()
   })

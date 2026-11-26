@@ -4,6 +4,7 @@ import { ageOn, isLeapYear, isRealDate } from '../dates'
 import {
   validateBirthDate,
   validateCheckOut,
+  validateContractDate,
   validateDate,
   validateTime,
 } from '../validators/dates'
@@ -48,17 +49,24 @@ describe('Fechas', () => {
     expect(validateBirthDate('2023-02-29', today)).toBe('fecha.noExiste')
   })
 
-  it('salida estrictamente posterior a la entrada (fecha y hora)', () => {
-    expect(validateCheckOut('2027-07-12', '16:00', '2027-07-19', '11:00')).toBeNull()
-    // Mismo día, un minuto después: vale (no se exige un día completo)
-    expect(validateCheckOut('2027-07-12', '16:00', '2027-07-12', '16:01')).toBeNull()
-    // Misma fecha y hora: no vale
-    expect(validateCheckOut('2027-07-12', '16:00', '2027-07-12', '16:00')).toBe(
-      'salida.noPosterior',
+  // Las horas ya no las rellena el huésped: solo se comparan las fechas.
+  it('fecha de salida estrictamente posterior a la de entrada', () => {
+    expect(validateCheckOut('2027-07-12', '2027-07-19')).toBeNull()
+    expect(validateCheckOut('2027-07-12', '2027-07-13')).toBeNull()
+    expect(validateCheckOut('2027-07-12', '2027-07-12')).toBe('salida.noPosterior')
+    expect(validateCheckOut('2027-07-12', '2027-07-11')).toBe('salida.noPosterior')
+  })
+
+  it('fecha del contrato: no futura ni posterior a la entrada', () => {
+    const today = '2027-06-01'
+    expect(validateContractDate('2027-05-20', '2027-07-12', today)).toBeNull()
+    expect(validateContractDate('2027-06-01', '2027-07-12', today)).toBeNull() // hoy vale
+    expect(validateContractDate('2027-06-02', '2027-07-12', today)).toBe('contrato.futuro')
+    expect(validateContractDate('2027-05-20', '2027-05-10', today)).toBe(
+      'contrato.posteriorEntrada',
     )
-    expect(validateCheckOut('2027-07-12', '16:00', '2027-07-11', '18:00')).toBe(
-      'salida.noPosterior',
-    )
+    expect(validateContractDate('2027-05-20', null, today)).toBeNull() // entrada aún no válida
+    expect(validateContractDate('2027-02-30', '2027-07-12', today)).toBe('fecha.noExiste')
   })
 })
 

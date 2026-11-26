@@ -3,7 +3,13 @@ import type { Booking, Person } from '../domain/types'
 
 // Reservas INVENTADAS para los tests del XML (el repositorio es público).
 
-const ADDRESS = { street: 'Calle Inventada 1', city: 'Alcúdia', postalCode: '07400', country: 'ES' }
+const ADDRESS = {
+  street: 'Calle Inventada 1',
+  complement: '',
+  city: 'Alcúdia',
+  postalCode: '07400',
+  country: 'ES',
+}
 
 export function holder(): Person {
   return {
@@ -17,38 +23,36 @@ export function holder(): Person {
     documentType: 'dni',
     documentNumber: '12345678Z',
     supportNumber: 'AAA000000',
-    address: { ...ADDRESS },
+    address: { ...ADDRESS, complement: '2º B' },
     phone: '+34 600 000 000',
+    phone2: '971 000 000',
     email: 'ana@ejemplo.test',
   }
 }
 
-// Reserva de 1 persona, en invierno (enero: +01:00), sin forma de pago.
+// Reserva de 1 persona, sin fecha de contrato.
 export function oneGuestBooking(): Booking {
   return {
     stay: {
       reference: 'RES-0001',
+      contractDate: '',
       checkInDate: '2027-01-15',
-      checkInTime: '16:00',
       checkOutDate: '2027-01-20',
-      checkOutTime: '11:00',
       numberOfPeople: 1,
     },
     people: [holder()],
   }
 }
 
-// Reserva de 3 personas en verano (julio: +02:00), con pago y un menor sin documento.
+// Reserva de 3 personas con fecha de contrato y un menor sin documento.
 export function threeGuestBooking(): Booking {
   return {
     stay: {
       reference: 'RES-0003',
+      contractDate: '2027-05-20',
       checkInDate: '2027-07-12',
-      checkInTime: '16:00',
       checkOutDate: '2027-07-19',
-      checkOutTime: '11:00',
       numberOfPeople: 3,
-      payment: { method: 'tarjeta' },
     },
     people: [
       holder(),
@@ -73,7 +77,7 @@ export function threeGuestBooking(): Booking {
         nationality: 'FR',
         address: { ...ADDRESS },
         phone: '+34 600 000 000',
-        relationship: 'Hijo',
+        relationship: 'HJ', // hijo/a
       },
     ],
   }

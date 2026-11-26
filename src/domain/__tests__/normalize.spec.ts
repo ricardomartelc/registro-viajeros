@@ -14,11 +14,18 @@ describe('Limpieza de espacios', () => {
     const person = {
       ...emptyPerson(),
       firstName: ' Ana ',
-      address: { street: 'Calle  Inventada  1', city: ' Alcúdia', postalCode: '07400 ', country: 'ES' },
+      address: {
+        street: 'Calle  Inventada  1',
+        complement: ' 2º  B ',
+        city: ' Alcúdia',
+        postalCode: '07400 ',
+        country: 'ES',
+      },
     }
     const clean = cleanPerson(person)
     expect(clean.firstName).toBe('Ana')
     expect(clean.address.street).toBe('Calle Inventada 1')
+    expect(clean.address.complement).toBe('2º B')
     expect(clean.address.city).toBe('Alcúdia')
     expect(clean.address.postalCode).toBe('07400')
   })

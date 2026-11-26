@@ -1,26 +1,26 @@
 import type { Booking, Person } from '../domain/types'
 import {
   ADDRESS_FIELDS,
+  COMMUNICATION_NODE,
+  CONTACT_FIELDS,
   CONTRACT_FIELDS,
   CONTRACT_NODE,
   COUNTRY_ALPHA3,
   DOCUMENT_CODES,
   OWNER_DATA_NOTE,
   PARTIAL_NOTE,
-  PAYMENT_CODES,
-  PAYMENT_TYPE_NODE,
-  PEOPLE_NODE,
   PERSON_FIELDS,
   PERSON_NODE,
-  ROLE_CODES,
+  PERSON_ROLE,
+  REQUEST_NODE,
   ROOT,
   SEX_CODES,
   XML_HEADER,
   type AddressKey,
+  type ContactKey,
   type ContractKey,
   type PersonKey,
 } from './schema'
-import { madridDateTime } from './timeZone'
 import { ageOn, isRealDate } from '../domain/dates'
 import { isMinorAge } from '../domain/rules'
 
@@ -98,46 +98,18 @@ function countryCode(alpha2: string, node: string): string {
 
 function contractValue(booking: Booking, key: ContractKey): string {
   const { stay } = booking
-  switch (key) {
-    case 'reference':
-      return stay.reference
-    case 'checkIn':
-      return stay.checkInDate && stay.checkInTime
-        ? madridDateTime(stay.checkInDate, stay.checkInTime)
-        : ''
-    case 'checkOut':
-      return stay.checkOutDate && stay.checkOutTime
-        ? madridDateTime(stay.checkOutDate, stay.checkOutTime)
-        : ''
-    case 'numberOfPeople':
-      return stay.numberOfPeople > 0 ? String(stay.numberOfPeople) : ''
-    case 'payment':
-      return '' // es un grupo: se escribe aparte
-  }
+  if (key === 'numberOfPeople') return stay.numberOfPeople > 0 ? String(stay.numberOfPeople) : ''
+  return stay[key] // referencia y fechas (AAAA-MM-DD, sin hora)
 }
 
 function contractLines(booking: Booking, depth: number): string[] {
-  const lines: string[] = []
-  for (const field of CONTRACT_FIELDS) {
-    if (field.key === 'payment') {
-      const method = booking.stay.payment?.method
-      const code = method ? PAYMENT_CODES[method as keyof typeof PAYMENT_CODES] : ''
-      if (method && !code) throw new BuildError('codigoDesconocido', PAYMENT_TYPE_NODE)
-      const children = leaf(PAYMENT_TYPE_NODE, code ?? '', false, depth + 2)
-      lines.push(...group(field.node, children, field.required, depth + 1))
-    } else {
-      lines.push(...leaf(field.node, contractValue(booking, field.key), field.required, depth + 1))
-    }
-  }
+  const lines = CONTRACT_FIELDS.flatMap((field) =>
+    leaf(field.node, contractValue(booking, field.key), field.required, depth + 1),
+  )
   return group(CONTRACT_NODE, lines, true, depth)
 }
 
 // ---------- Personas ----------
-
-function addressValue(person: Person, key: AddressKey, node: string): string {
-  if (key === 'country') return countryCode(person.address.country, node)
-  return person.address[key]
-}
 
 // ¿Es menor a la fecha de entrada? (solo los menores llevan parentesco)
 function isMinor(person: Person, checkInDate: string): boolean {
@@ -145,32 +117,36 @@ function isMinor(person: Person, checkInDate: string): boolean {
   return isMinorAge(ageOn(person.birthDate, checkInDate))
 }
 
-function personValue(
-  person: Person,
-  key: PersonKey,
-  isHolder: boolean,
-  minor: boolean,
-  node: string,
-): string {
+function addressValue(person: Person, key: AddressKey, node: string): string {
+  if (key === 'country') return countryCode(person.address.country, node)
+  return person.address[key]
+}
+
+function contactValue(person: Person, key: ContactKey): string {
+  return person[key]
+}
+
+function personValue(person: Person, key: PersonKey, minor: boolean, node: string): string {
   switch (key) {
     case 'role':
-      return isHolder ? ROLE_CODES.holder : ROLE_CODES.companion
-    case 'relationship':
-      return minor ? person.relationship : ''
+      return PERSON_ROLE // todas las personas: VI
     case 'documentType':
       return person.documentType ? DOCUMENT_CODES[person.documentType] : ''
     case 'sex':
       return person.sex ? SEX_CODES[person.sex] : ''
     case 'nationality':
       return countryCode(person.nationality, node)
+    case 'relationship':
+      return minor ? person.relationship : '' // ya es un código (AB, HJ…)
     case 'address':
-      return '' // es un grupo: se escribe aparte
+    case 'contact':
+      return '' // son grupos: se escriben aparte
     default:
       return person[key]
   }
 }
 
-function personLines(person: Person, isHolder: boolean, checkInDate: string, depth: number) {
+function personLines(person: Person, checkInDate: string, depth: number): string[] {
   const minor = isMinor(person, checkInDate)
   const lines: string[] = []
   for (const field of PERSON_FIELDS) {
@@ -179,8 +155,13 @@ function personLines(person: Person, isHolder: boolean, checkInDate: string, dep
         leaf(part.node, addressValue(person, part.key, part.node), part.required, depth + 2),
       )
       lines.push(...group(field.node, children, field.required, depth + 1))
+    } else if (field.key === 'contact') {
+      const children = CONTACT_FIELDS.flatMap((part) =>
+        leaf(part.node, contactValue(person, part.key), part.required, depth + 2),
+      )
+      lines.push(...group(field.node, children, field.required, depth + 1))
     } else {
-      const value = personValue(person, field.key, isHolder, minor, field.node)
+      const value = personValue(person, field.key, minor, field.node)
       lines.push(...leaf(field.node, value, field.required, depth + 1))
     }
   }
@@ -189,19 +170,20 @@ function personLines(person: Person, isHolder: boolean, checkInDate: string, dep
 
 // ---------- Archivo completo ----------
 
+// peticion > solicitud > comunicacion > (contrato, persona, persona…)
 export function buildPartialXml(booking: Booking): XmlResult {
   try {
     const checkIn = booking.stay.checkInDate
-    const people = booking.people.flatMap((person, index) =>
-      personLines(person, index === 0, checkIn, 2),
-    )
+    const communication = [
+      ...contractLines(booking, 3),
+      ...booking.people.flatMap((person) => personLines(person, checkIn, 3)),
+    ]
     const lines = [
       XML_HEADER,
       `<!-- ${PARTIAL_NOTE} -->`,
       `<${ROOT.name} ${ROOT.namespaceAttribute}="${ROOT.namespace}">`,
       `${INDENT}<!-- ${OWNER_DATA_NOTE} -->`,
-      ...contractLines(booking, 1),
-      ...group(PEOPLE_NODE, people, true, 1),
+      ...group(REQUEST_NODE, group(COMMUNICATION_NODE, communication, true, 2), true, 1),
       `</${ROOT.name}>`,
     ]
     return { ok: true, xml: `${lines.join('\n')}\n` }

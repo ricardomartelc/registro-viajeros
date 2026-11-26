@@ -8,11 +8,10 @@ import { errorText } from '../../i18n/errors'
 export const FIELD_LABELS: Partial<Record<FieldPath, MessageKey>> = {
   // Estancia
   reference: 'stay.reference',
+  contractDate: 'stay.contractDate',
   numberOfPeople: 'stay.people',
   checkInDate: 'stay.checkInDate',
-  checkInTime: 'stay.checkInTime',
   checkOutDate: 'stay.checkOutDate',
-  checkOutTime: 'stay.checkOutTime',
   // Persona
   firstName: 'person.firstName',
   surname1: 'person.surname1',
@@ -25,22 +24,21 @@ export const FIELD_LABELS: Partial<Record<FieldPath, MessageKey>> = {
   documentNumber: 'person.documentNumber',
   supportNumber: 'person.supportNumber',
   'address.street': 'person.street',
+  'address.complement': 'person.complement',
   'address.city': 'person.city',
   'address.country': 'person.country',
   'address.postalCode': 'person.postalCode',
-  contact: 'holder.groupContact',
   phone: 'person.phone',
+  phone2: 'person.phone2',
   email: 'person.email',
 }
 
 const FIELD_ORDER = Object.keys(FIELD_LABELS)
 
 // id de cada campo en pantalla (los usan los enlaces de los resúmenes de errores).
-// Estancia: 'campo-reference'. Persona: 'address.city' → 'campo-address-city';
-// el error de contacto (teléfono o correo) lleva al teléfono.
+// Estancia: 'campo-reference'. Persona: 'address.city' → 'campo-address-city'.
 export const stayFieldId = (field: FieldPath): string => `campo-${field}`
-export const personFieldId = (field: FieldPath): string =>
-  field === 'contact' ? 'campo-phone' : `campo-${field.replace('.', '-')}`
+export const personFieldId = (field: FieldPath): string => `campo-${field.replace('.', '-')}`
 
 // Nombre visible de un campo (o '' si no tiene).
 export function fieldLabel(field: FieldPath): string {

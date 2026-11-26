@@ -21,16 +21,24 @@ export function validateBirthDate(birthDate: string, today: string): ErrorCode |
   return birthDate > today ? 'nacimiento.futuro' : null
 }
 
-// La salida (fecha y hora) es estrictamente posterior a la entrada. No exige un día completo.
-// Las cuatro partes deben venir ya validadas. Con el formato 'AAAA-MM-DD' y 'HH:MM',
-// comparar los textos da el mismo orden que comparar las fechas.
-export function validateCheckOut(
-  checkInDate: string,
-  checkInTime: string,
-  checkOutDate: string,
-  checkOutTime: string,
+// La fecha de salida es estrictamente posterior a la de entrada (al menos una noche).
+// Las horas ya no las rellena el huésped (las pone el propietario).
+// Las dos fechas deben venir ya validadas. Con el formato 'AAAA-MM-DD', comparar los
+// textos da el mismo orden que comparar las fechas.
+export function validateCheckOut(checkInDate: string, checkOutDate: string): ErrorCode | null {
+  return checkOutDate > checkInDate ? null : 'salida.noPosterior'
+}
+
+// Fecha del contrato (opcional): válida, no futura y no posterior a la entrada.
+// 'checkInDate' puede ser null si la fecha de entrada todavía no es válida.
+export function validateContractDate(
+  contractDate: string,
+  checkInDate: string | null,
+  today: string,
 ): ErrorCode | null {
-  const checkIn = `${checkInDate}T${checkInTime}`
-  const checkOut = `${checkOutDate}T${checkOutTime}`
-  return checkOut > checkIn ? null : 'salida.noPosterior'
+  const dateError = validateDate(contractDate)
+  if (dateError) return dateError
+  if (contractDate > today) return 'contrato.futuro'
+  if (checkInDate && contractDate > checkInDate) return 'contrato.posteriorEntrada'
+  return null
 }

@@ -10,7 +10,8 @@ import type { Option } from '../shared/types'
 import type { PersonForm } from './usePersonForm'
 import { locale, t, type MessageKey } from '../../i18n'
 import { countryOptions } from '../../i18n/countries'
-import { isSpain } from '../../domain/rules'
+import { RULES, isSpain, secondSurnameRequiredFor } from '../../domain/rules'
+import { RELATIONSHIP_CODES } from '../../domain/relationships'
 import type { DocumentType, Sex } from '../../domain/types'
 
 // Formulario de UNA persona (titular o acompañante): datos personales, documento,
@@ -21,8 +22,32 @@ import type { DocumentType, Sex } from '../../domain/types'
 const props = defineProps<{ form: PersonForm; hideAddress?: boolean; hideContact?: boolean }>()
 
 // Se sacan las piezas del formulario para usarlas directamente en la plantilla.
-const { person, errorFor, leave, fieldId, touched, needsSupportNumber, needsRelationship } =
-  props.form
+const {
+  person,
+  errorFor,
+  leave,
+  fieldId,
+  touched,
+  needsSupportNumber,
+  needsRelationship,
+  documentOptional,
+} = props.form
+
+// Segundo apellido: obligatorio con DNI; si no, opcional (rules.ts).
+const surname2Optional = computed(() => !secondSurnameRequiredFor(person.value.documentType))
+
+// Parentesco: lista de códigos del documento de diseño (etiquetas por confirmar).
+const relationshipOptions = computed(() =>
+  RELATIONSHIP_CODES.map((code) => ({
+    value: code,
+    label: t(`relationship.${code}` as MessageKey),
+  })),
+)
+
+// Ayuda del correo: "Máximo 50 caracteres…"
+const emailHint = computed(() =>
+  t('person.emailHint').replace('{max}', String(RULES.emailMaxLength)),
+)
 
 // Opciones de chips y listas (textos por i18n)
 const sexOptions = computed<Option[]>(() =>
@@ -89,10 +114,11 @@ const postalInputMode = computed(() => (isSpain(person.value.address.country) ? 
         :id="fieldId('surname2')"
         v-model="person.surname2"
         :label="t('person.surname2')"
+        :hint="surname2Optional ? undefined : t('person.surname2RequiredHint')"
         :error="errorFor('surname2')"
         autocomplete="off"
         enterkeyhint="next"
-        optional
+        :optional="surname2Optional"
         @focusout="leave('surname2')"
       />
     </FormRow>
@@ -126,21 +152,25 @@ const postalInputMode = computed(() => (isSpain(person.value.address.country) ? 
         @focusout="leave('nationality')"
       />
     </FormRow>
+    <!-- Parentesco: solo menores de 18 a la fecha de entrada; lista de códigos -->
     <FormRow v-if="needsRelationship">
-      <TextField
+      <SelectField
         :id="fieldId('relationship')"
         v-model="person.relationship"
         :label="t('person.relationship')"
         :hint="t('person.relationshipHint')"
+        :options="relationshipOptions"
         :error="errorFor('relationship')"
-        autocomplete="off"
-        enterkeyhint="next"
         @focusout="leave('relationship')"
       />
     </FormRow>
   </FormGroup>
 
-  <FormGroup :title="t('holder.groupDocument')">
+  <!-- Documento: obligatorio para mayores de 18; opcional para menores -->
+  <FormGroup
+    :title="t('holder.groupDocument')"
+    :note="documentOptional ? t('person.documentOptionalMinor') : undefined"
+  >
     <FormRow>
       <ChipGroup
         :id="fieldId('documentType')"
@@ -158,6 +188,7 @@ const postalInputMode = computed(() => (isSpain(person.value.address.country) ? 
         :error="errorFor('documentNumber')"
         autocomplete="off"
         enterkeyhint="next"
+        :optional="documentOptional"
         @focusout="leave('documentNumber')"
       />
     </FormRow>
@@ -189,6 +220,19 @@ const postalInputMode = computed(() => (isSpain(person.value.address.country) ? 
           autocomplete="street-address"
           enterkeyhint="next"
           @focusout="leave('address.street')"
+        />
+      </FormRow>
+      <FormRow>
+        <TextField
+          :id="fieldId('address.complement')"
+          v-model="person.address.complement"
+          :label="t('person.complement')"
+          :hint="t('person.complementHint')"
+          :error="errorFor('address.complement')"
+          autocomplete="address-line2"
+          enterkeyhint="next"
+          optional
+          @focusout="leave('address.complement')"
         />
       </FormRow>
       <FormRow>
@@ -228,10 +272,8 @@ const postalInputMode = computed(() => (isSpain(person.value.address.country) ? 
     </template>
   </FormGroup>
 
-  <FormGroup
-    :title="t('holder.groupContact')"
-    :note="hideContact ? undefined : t('holder.contactNote')"
-  >
+  <!-- Contacto: móvil obligatorio; fijo y correo opcionales -->
+  <FormGroup :title="t('holder.groupContact')">
     <FormRow v-if="$slots['contact-switch']">
       <slot name="contact-switch" />
     </FormRow>
@@ -242,7 +284,7 @@ const postalInputMode = computed(() => (isSpain(person.value.address.country) ? 
           v-model="person.phone"
           type="tel"
           :label="t('person.phone')"
-          :error="errorFor('phone', 'contact')"
+          :error="errorFor('phone')"
           autocomplete="tel"
           inputmode="tel"
           enterkeyhint="next"
@@ -251,14 +293,30 @@ const postalInputMode = computed(() => (isSpain(person.value.address.country) ? 
       </FormRow>
       <FormRow>
         <TextField
+          :id="fieldId('phone2')"
+          v-model="person.phone2"
+          type="tel"
+          :label="t('person.phone2')"
+          :error="errorFor('phone2')"
+          autocomplete="off"
+          inputmode="tel"
+          enterkeyhint="next"
+          optional
+          @focusout="leave('phone2')"
+        />
+      </FormRow>
+      <FormRow>
+        <TextField
           :id="fieldId('email')"
           v-model="person.email"
           type="email"
           :label="t('person.email')"
+          :hint="emailHint"
           :error="errorFor('email')"
           autocomplete="email"
           inputmode="email"
           enterkeyhint="done"
+          optional
           @focusout="leave('email')"
         />
       </FormRow>

@@ -67,7 +67,7 @@ function allowedScreen(wanted: Screen): Screen {
     ensurePeopleCount()
     applySharedData()
     const today = localToday()
-    if (validateStay(booking.stay).length > 0) return 'estancia'
+    if (validateStay(booking.stay, today).length > 0) return 'estancia'
     if (validatePerson(booking.people[0]!, 0, booking.stay.checkInDate, today).errors.length > 0) {
       return 'datos'
     }

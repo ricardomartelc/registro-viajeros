@@ -11,10 +11,9 @@ export function cleanStay(stay: Stay): Stay {
   return {
     ...stay,
     reference: cleanSpaces(stay.reference),
+    contractDate: cleanSpaces(stay.contractDate),
     checkInDate: cleanSpaces(stay.checkInDate),
-    checkInTime: cleanSpaces(stay.checkInTime),
     checkOutDate: cleanSpaces(stay.checkOutDate),
-    checkOutTime: cleanSpaces(stay.checkOutTime),
   }
 }
 
@@ -36,10 +35,12 @@ export function cleanPerson(person: Person): Person {
     documentNumber: cleanCode(person.documentNumber),
     supportNumber: cleanCode(person.supportNumber),
     phone: cleanSpaces(person.phone),
+    phone2: cleanSpaces(person.phone2),
     email: cleanSpaces(person.email),
     relationship: cleanSpaces(person.relationship),
     address: {
       street: cleanSpaces(person.address.street),
+      complement: cleanSpaces(person.address.complement),
       city: cleanSpaces(person.address.city),
       postalCode: cleanSpaces(person.address.postalCode),
       country: cleanSpaces(person.address.country),
