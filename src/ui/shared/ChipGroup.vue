@@ -2,6 +2,7 @@
 import { useId } from 'vue'
 import AppIcon from './AppIcon.vue'
 import type { Option } from './types'
+import { t } from '../../i18n'
 
 // Selector en chips.
 // - Selección única (por defecto): v-model es un texto, por dentro son botones radio.
@@ -12,12 +13,14 @@ const props = defineProps<{
   legend: string
   options: Option[]
   multiple?: boolean
+  error?: string // texto del error (con icono y texto, no solo color)
 }>()
 
 const model = defineModel<string | string[]>({ required: true })
 
 // Nombre común de los radios del grupo (único en la página).
 const name = useId()
+const errorId = `${name}-error`
 
 function isChecked(value: string): boolean {
   return Array.isArray(model.value) ? model.value.includes(value) : model.value === value
@@ -34,8 +37,12 @@ function toggle(value: string): void {
 </script>
 
 <template>
-  <fieldset class="chips">
+  <fieldset class="chips" :aria-describedby="error ? errorId : undefined">
     <legend class="chips__legend">{{ legend }}</legend>
+    <p v-if="error" :id="errorId" class="chips__error">
+      <AppIcon name="alert" />
+      <span><span class="visually-hidden">{{ t('field.errorPrefix') }}</span> {{ error }}</span>
+    </p>
     <div class="chips__list">
       <label
         v-for="option in options"
@@ -70,6 +77,14 @@ function toggle(value: string): void {
 .chips__legend {
   padding: 0;
   margin-bottom: var(--space-3);
+  font-weight: 600;
+}
+.chips__error {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0 0 var(--space-2);
+  color: var(--color-error);
   font-weight: 600;
 }
 .chips__list {

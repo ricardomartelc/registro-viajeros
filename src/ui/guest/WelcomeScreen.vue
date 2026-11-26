@@ -6,6 +6,9 @@ import type { IconName } from '../shared/icons'
 import { t, type MessageKey } from '../../i18n'
 import fotoCasa from '../../assets/photos/plano-general-casa.jpg'
 
+// "Comenzar" avisa a App.vue, que cambia a la pantalla Estancia.
+const emit = defineEmits<{ start: [] }>()
+
 // Los tres pasos de "Cómo funciona": icono, título y texto (claves de i18n).
 const steps: { icon: IconName; title: MessageKey; text: MessageKey }[] = [
   { icon: 'edit', title: 'welcome.step1.title', text: 'welcome.step1.text' },
@@ -29,13 +32,13 @@ const steps: { icon: IconName; title: MessageKey; text: MessageKey }[] = [
           <LanguageSwitch />
         </header>
         <div class="hero__heading">
-          <h1 id="welcome-title" class="hero__title">{{ t('brand') }}</h1>
+          <h1 id="welcome-title" class="hero__title" tabindex="-1">{{ t('brand') }}</h1>
           <p class="hero__place">{{ t('welcome.place') }}</p>
         </div>
       </div>
 
       <div class="hero__bottom">
-        <AppButton variant="glass-accent" href="#estancia">
+        <AppButton variant="glass-accent" @click="emit('start')">
           {{ t('welcome.start') }}
           <AppIcon name="arrow" />
         </AppButton>
@@ -70,7 +73,7 @@ const steps: { icon: IconName; title: MessageKey; text: MessageKey }[] = [
       <!-- Secundario (contorno): en móviles altos se vería a la vez que el rojo de la foto,
            y solo puede haber un botón rojo visible a la vez (docs/estilo.md). -->
       <div v-reveal="480">
-        <AppButton variant="outline" href="#estancia" class="how__cta">
+        <AppButton variant="outline" class="how__cta" @click="emit('start')">
           {{ t('welcome.start') }}
         </AppButton>
       </div>
@@ -133,6 +136,9 @@ const steps: { icon: IconName; title: MessageKey; text: MessageKey }[] = [
   align-items: flex-start;
   gap: var(--space-3);
   padding: var(--space-4) var(--space-5) 0;
+}
+.hero__title:focus {
+  outline: none; /* el foco del título es solo para lectores de pantalla */
 }
 .hero__title {
   width: min-content; /* una palabra por línea: "Can" / "Vauma" */

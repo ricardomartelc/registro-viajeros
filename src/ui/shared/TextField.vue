@@ -10,10 +10,11 @@ import { t } from '../../i18n'
 const props = withDefaults(
   defineProps<{
     label: string
+    id?: string // para enlazar desde el resumen de errores; si no se da, se genera uno
     hint?: string
     error?: string
     optional?: boolean
-    type?: 'text' | 'email' | 'tel' | 'number' | 'date' | 'search'
+    type?: 'text' | 'email' | 'tel' | 'number' | 'date' | 'time' | 'search'
     autocomplete?: string
     inputmode?: 'none' | 'text' | 'decimal' | 'numeric' | 'tel' | 'search' | 'email' | 'url'
     enterkeyhint?: 'enter' | 'done' | 'go' | 'next' | 'previous' | 'search' | 'send'
@@ -23,7 +24,8 @@ const props = withDefaults(
 
 const model = defineModel<string>({ default: '' })
 
-const id = useId()
+const generatedId = useId()
+const id = props.id ?? generatedId
 const hintId = `${id}-ayuda`
 const errorId = `${id}-error`
 

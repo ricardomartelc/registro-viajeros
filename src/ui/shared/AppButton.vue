@@ -1,14 +1,25 @@
 <script setup lang="ts">
 // variant: 'primary' (rojo sólido, sobre marfil), 'glass' (cristal, solo sobre fotos),
 // 'glass-accent' (píldora de cristal rojo, solo sobre fotos), 'outline' (borde)
+// type: 'button' por defecto. Dentro de un <form>, un botón sin type envía el formulario.
 withDefaults(
-  defineProps<{ variant?: 'primary' | 'glass' | 'glass-accent' | 'outline'; href?: string }>(),
-  { variant: 'primary', href: undefined },
+  defineProps<{
+    variant?: 'primary' | 'glass' | 'glass-accent' | 'outline'
+    href?: string
+    type?: 'button' | 'submit'
+  }>(),
+  { variant: 'primary', href: undefined, type: 'button' },
 )
 </script>
 
 <template>
-  <component :is="href ? 'a' : 'button'" :href="href" class="btn" :class="`btn--${variant}`">
+  <component
+    :is="href ? 'a' : 'button'"
+    :href="href"
+    :type="href ? undefined : type"
+    class="btn"
+    :class="`btn--${variant}`"
+  >
     <slot />
   </component>
 </template>
